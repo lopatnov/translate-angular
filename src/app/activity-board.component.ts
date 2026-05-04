@@ -20,21 +20,27 @@ import { Component } from '@angular/core';
               <small>Translation batch</small>
               <small>72%</small>
             </div>
-            <div class="progress" style="height: 0.5rem;"><div class="progress-bar bg-warning" style="width: 72%"></div></div>
+            <div class="progress" style="height: 0.5rem;">
+              <div class="progress-bar bg-warning" style="width: 72%"></div>
+            </div>
           </div>
           <div class="mb-3">
             <div class="d-flex justify-content-between mb-1">
               <small>Localization export</small>
               <small>48%</small>
             </div>
-            <div class="progress" style="height: 0.5rem;"><div class="progress-bar bg-info" style="width: 48%"></div></div>
+            <div class="progress" style="height: 0.5rem;">
+              <div class="progress-bar bg-info" style="width: 48%"></div>
+            </div>
           </div>
           <div class="mb-3">
             <div class="d-flex justify-content-between mb-1">
               <small>Speech transcription</small>
               <small>92%</small>
             </div>
-            <div class="progress" style="height: 0.5rem;"><div class="progress-bar bg-success" style="width: 92%"></div></div>
+            <div class="progress" style="height: 0.5rem;">
+              <div class="progress-bar bg-success" style="width: 92%"></div>
+            </div>
           </div>
         </div>
       </div>
@@ -75,13 +81,15 @@ import { Component } from '@angular/core';
         </div>
         <div class="card-body">
           <ul class="list-unstyled mb-0 small text-muted">
-            <li class="mb-2">Use text translation for quick phrases and review the preview card.</li>
+            <li class="mb-2">
+              Use text translation for quick phrases and review the preview card.
+            </li>
             <li class="mb-2">Upload localization files for batch processing.</li>
             <li>Use speech-to-text to automate meeting notes and voice logs.</li>
           </ul>
         </div>
       </div>
     </section>
-  `
+  `,
 })
 export class ActivityBoardComponent {}
