@@ -1,9 +1,9 @@
 import { Component } from '@angular/core';
 
 @Component({
-  selector: 'app-locale-files',
-  standalone: true,
-  template: `
+	selector: 'app-locale-files',
+	standalone: true,
+	template: `
     <section class="mb-4">
       <div class="card section-card shadow-sm">
         <div class="card-header d-flex justify-content-between align-items-center">

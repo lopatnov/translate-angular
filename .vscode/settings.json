@@ -1,0 +1,13 @@
+{
+	"sonarlint.connectedMode.project": {
+		"connectionId": "lopatnov",
+		"projectKey": "lopatnov_translate-angular"
+	},
+	"editor.formatOnSave": true,
+	"editor.defaultFormatter": "biomejs.biome",
+	"dotnet.formatting.organizeImportsOnFormat": false,
+	"editor.codeActionsOnSave": {
+		"source.organizeImports.biome": "explicit",
+		"source.removeUnusedImports": "explicit"
+	}
+}

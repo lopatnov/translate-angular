@@ -1,9 +1,9 @@
 import { Component } from '@angular/core';
 
 @Component({
-  selector: 'app-activity-board',
-  standalone: true,
-  template: `
+	selector: 'app-activity-board',
+	standalone: true,
+	template: `
     <section class="mb-4">
       <div class="card section-card shadow-sm">
         <div class="card-header">
