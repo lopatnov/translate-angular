@@ -52,6 +52,18 @@
 
     <!-- Main content -->
     <section class="main-content col">
+      @if (appError.message()) {
+        <div class="alert alert-warning alert-dismissible d-flex align-items-start gap-2 rounded-0 mb-0"
+             role="alert">
+          <span aria-hidden="true">⚠</span>
+          <div class="flex-grow-1">
+            <strong>Unexpected error</strong><br>
+            <span class="small">{{ appError.message() }}</span>
+          </div>
+          <button type="button" class="btn-close" aria-label="Dismiss"
+                  (click)="appError.clear()"></button>
+        </div>
+      }
       <div class="container-fluid py-4">
         <router-outlet />
       </div>
