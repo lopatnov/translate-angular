@@ -1,7 +1,7 @@
-import { computed, inject, Injectable } from '@angular/core';
+import { computed, Injectable, inject } from '@angular/core';
 import { toSignal } from '@angular/core/rxjs-interop';
-import { catchError, map, Observable, of } from 'rxjs';
-import { apiErrorMessage } from './api-error.util';
+import { catchError, map, type Observable, of } from 'rxjs';
+import { apiErrorMessage } from '../utils/api-error.util';
 import { TranslateApiService } from './translate-api.service';
 
 interface CapsState {
@@ -42,12 +42,13 @@ export class CapabilitiesService {
 					error: null,
 				}),
 			),
-			catchError((err): Observable<CapsState> =>
-				of({
-					...LOADING,
-					loaded: true,
-					error: apiErrorMessage(err, 'Cannot reach gRPC service.'),
-				}),
+			catchError(
+				(err): Observable<CapsState> =>
+					of({
+						...LOADING,
+						loaded: true,
+						error: apiErrorMessage(err, 'Cannot reach gRPC service.'),
+					}),
 			),
 		),
 		{ initialValue: LOADING },

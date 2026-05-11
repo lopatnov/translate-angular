@@ -20,7 +20,9 @@ test.describe('Speech to text', () => {
 	test('language select includes Auto-detect option', async ({ page }) => {
 		const select = page.locator('#stt-lang');
 		await expect(select).toBeVisible();
-		await expect(select.locator('option', { hasText: 'Auto-detect' })).toBeAttached();
+		await expect(
+			select.locator('option', { hasText: 'Auto-detect' }),
+		).toBeAttached();
 	});
 
 	test('language format select is present', async ({ page }) => {
@@ -36,14 +38,10 @@ test.describe('Speech to text', () => {
 	});
 
 	test('Clear button is present', async ({ page }) => {
-		await expect(
-			page.getByRole('button', { name: 'Clear' }),
-		).toBeVisible();
+		await expect(page.getByRole('button', { name: 'Clear' })).toBeVisible();
 	});
 
 	test('audio format hint is shown', async ({ page }) => {
-		await expect(
-			page.getByText('Only WAV format is supported.'),
-		).toBeVisible();
+		await expect(page.getByText('Only WAV format is supported.')).toBeVisible();
 	});
 });

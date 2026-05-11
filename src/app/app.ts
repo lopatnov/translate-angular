@@ -1,13 +1,13 @@
-import {
-	Component,
-	ChangeDetectionStrategy,
-	signal,
-	effect,
-	PLATFORM_ID,
-	inject,
-} from '@angular/core';
 import { isPlatformBrowser } from '@angular/common';
-import { RouterOutlet, RouterLink, RouterLinkActive } from '@angular/router';
+import {
+	ChangeDetectionStrategy,
+	Component,
+	effect,
+	inject,
+	PLATFORM_ID,
+	signal,
+} from '@angular/core';
+import { RouterLink, RouterLinkActive, RouterOutlet } from '@angular/router';
 
 @Component({
 	selector: 'app-root',

@@ -1,4 +1,4 @@
-import { computed, DestroyRef, signal } from '@angular/core';
+import { computed, type DestroyRef, signal } from '@angular/core';
 import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
 import type { AbstractControl } from '@angular/forms';
 
@@ -28,12 +28,10 @@ export function useLangFormat(
 	const langFormat = signal(control.value);
 	const isNative = computed(() => langFormat() === 'native');
 
-	control.valueChanges
-		.pipe(takeUntilDestroyed(destroyRef))
-		.subscribe((fmt) => {
-			langFormat.set(fmt);
-			onSwitch(fmt === 'native');
-		});
+	control.valueChanges.pipe(takeUntilDestroyed(destroyRef)).subscribe((fmt) => {
+		langFormat.set(fmt);
+		onSwitch(fmt === 'native');
+	});
 
 	return { langFormat, isNative } as const;
 }

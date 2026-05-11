@@ -4,15 +4,15 @@ import type {
 	DetectLanguageResponse,
 	GetCapabilitiesRequest,
 	GetCapabilitiesResponse,
+	TranslateServiceClient as ITranslateServiceClient,
 	TranscribeAudioRequest,
 	TranscribeAudioResponse,
 	TranslateLocalizationRequest,
 	TranslateLocalizationResponse,
-	TranslateServiceClient as ITranslateServiceClient,
 	TranslateTextRequest,
 	TranslateTextResponse,
-} from './generated/translate';
-import { TranslateServiceClient } from './generated/translate';
+} from '../generated/translate';
+import { TranslateServiceClient } from '../generated/translate';
 
 // Both this file and the generated translate.ts import @grpc/grpc-js via ESM.
 // Using a plain ESM import (not createRequire) ensures a single module instance
@@ -34,10 +34,7 @@ function getClient(): ITranslateServiceClient {
 
 /** Promisify a single unary gRPC call. */
 function call<Req, Res>(
-	method: (
-		req: Req,
-		cb: (err: Error | null, res: Res) => void,
-	) => unknown,
+	method: (req: Req, cb: (err: Error | null, res: Res) => void) => unknown,
 	request: Req,
 ): Promise<Res> {
 	return new Promise<Res>((resolve, reject) =>

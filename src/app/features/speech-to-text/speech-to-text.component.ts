@@ -1,9 +1,18 @@
-import { ChangeDetectionStrategy, Component, DestroyRef, inject, signal } from '@angular/core';
+import {
+	ChangeDetectionStrategy,
+	Component,
+	DestroyRef,
+	inject,
+	signal,
+} from '@angular/core';
 import { FormBuilder, ReactiveFormsModule, Validators } from '@angular/forms';
-import { apiErrorMessage } from './api-error.util';
-import { useLangFormat } from './lang-format.util';
-import { LANGUAGE_FORMATS, LANGUAGES } from './languages';
-import { type TranscribeResponse, TranslateApiService } from './translate-api.service';
+import {
+	type TranscribeResponse,
+	TranslateApiService,
+} from '../../core/services/translate-api.service';
+import { apiErrorMessage } from '../../core/utils/api-error.util';
+import { useLangFormat } from '../../core/utils/lang-format.util';
+import { LANGUAGE_FORMATS, LANGUAGES } from '../../core/utils/languages';
 
 @Component({
 	selector: 'app-speech-to-text',
@@ -33,9 +42,14 @@ export class SpeechToTextComponent {
 		this.destroyRef,
 		(native) => {
 			const ctrl = this.form.controls.language;
-			native ? ctrl.setValidators([Validators.required]) : ctrl.clearValidators();
+			native
+				? ctrl.setValidators([Validators.required])
+				: ctrl.clearValidators();
 			ctrl.updateValueAndValidity({ emitEvent: false });
-			this.form.patchValue({ language: native ? '' : 'auto' }, { emitEvent: false });
+			this.form.patchValue(
+				{ language: native ? '' : 'auto' },
+				{ emitEvent: false },
+			);
 		},
 	);
 	protected readonly isNative = this._lf.isNative;

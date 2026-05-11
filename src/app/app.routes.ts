@@ -1,10 +1,12 @@
-import { Routes } from '@angular/router';
+import type { Routes } from '@angular/router';
 
 export const routes: Routes = [
 	{
 		path: '',
 		loadComponent: () =>
-			import('./features/dashboard/dashboard.component').then((m) => m.DashboardComponent),
+			import('./features/dashboard/dashboard.component').then(
+				(m) => m.DashboardComponent,
+			),
 	},
 	{
 		path: 'translate',
@@ -23,11 +25,15 @@ export const routes: Routes = [
 	{
 		path: 'localize',
 		loadComponent: () =>
-			import('./features/locale-files/locale-files.component').then((m) => m.LocaleFilesComponent),
+			import('./features/locale-files/locale-files.component').then(
+				(m) => m.LocaleFilesComponent,
+			),
 	},
 	{
 		path: 'transcribe',
 		loadComponent: () =>
-			import('./features/speech-to-text/speech-to-text.component').then((m) => m.SpeechToTextComponent),
+			import('./features/speech-to-text/speech-to-text.component').then(
+				(m) => m.SpeechToTextComponent,
+			),
 	},
 ];

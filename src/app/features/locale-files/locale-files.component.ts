@@ -1,10 +1,19 @@
-import { ChangeDetectionStrategy, Component, DestroyRef, inject, signal } from '@angular/core';
+import {
+	ChangeDetectionStrategy,
+	Component,
+	DestroyRef,
+	inject,
+	signal,
+} from '@angular/core';
 import { FormBuilder, ReactiveFormsModule, Validators } from '@angular/forms';
-import { apiErrorMessage } from './api-error.util';
-import { CapabilitiesService } from './capabilities.service';
-import { useLangFormat } from './lang-format.util';
-import { LANGUAGE_FORMATS, LANGUAGES } from './languages';
-import { type LocalizeResponse, TranslateApiService } from './translate-api.service';
+import { CapabilitiesService } from '../../core/services/capabilities.service';
+import {
+	type LocalizeResponse,
+	TranslateApiService,
+} from '../../core/services/translate-api.service';
+import { apiErrorMessage } from '../../core/utils/api-error.util';
+import { useLangFormat } from '../../core/utils/lang-format.util';
+import { LANGUAGE_FORMATS, LANGUAGES } from '../../core/utils/languages';
 
 @Component({
 	selector: 'app-locale-files',
@@ -73,8 +82,14 @@ export class LocaleFilesComponent {
 		this.error.set(null);
 		this.result.set(null);
 
-		const { json, source_language, target_language, model, existing_translation, language_format } =
-			this.form.getRawValue();
+		const {
+			json,
+			source_language,
+			target_language,
+			model,
+			existing_translation,
+			language_format,
+		} = this.form.getRawValue();
 
 		this.api
 			.localize({
@@ -89,7 +104,9 @@ export class LocaleFilesComponent {
 				next: (data) => {
 					this.result.set(data);
 					try {
-						this.prettyResult.set(JSON.stringify(JSON.parse(data.json), null, 2));
+						this.prettyResult.set(
+							JSON.stringify(JSON.parse(data.json), null, 2),
+						);
 					} catch {
 						this.prettyResult.set(data.json);
 					}

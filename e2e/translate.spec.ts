@@ -14,7 +14,9 @@ test.describe('Text translation', () => {
 	test('source language select includes Auto-detect', async ({ page }) => {
 		const select = page.locator('#src-lang');
 		await expect(select).toBeVisible();
-		await expect(select.locator('option', { hasText: 'Auto-detect' })).toBeAttached();
+		await expect(
+			select.locator('option', { hasText: 'Auto-detect' }),
+		).toBeAttached();
 	});
 
 	test('target language select is present', async ({ page }) => {
@@ -41,9 +43,7 @@ test.describe('Text translation', () => {
 
 	test('Translate button enables after typing text', async ({ page }) => {
 		await page.locator('#text-input').fill('Hello world');
-		await expect(
-			page.getByRole('button', { name: 'Translate' }),
-		).toBeEnabled();
+		await expect(page.getByRole('button', { name: 'Translate' })).toBeEnabled();
 	});
 
 	test('Clear button resets the text input', async ({ page }) => {

@@ -27,11 +27,9 @@ test.describe('Dashboard', () => {
 	test('resolves out of the loading state', async ({ page }) => {
 		// Wait up to 15s for the spinner to disappear (gRPC call completes or times out).
 		const spinner = page.locator('.spinner-border');
-		await spinner
-			.waitFor({ state: 'hidden', timeout: 15_000 })
-			.catch(() => {
-				// If it never disappears the next assertion will fail with a clear message.
-			});
+		await spinner.waitFor({ state: 'hidden', timeout: 15_000 }).catch(() => {
+			// If it never disappears the next assertion will fail with a clear message.
+		});
 
 		// After loading, either capabilities or an error must be shown.
 		const errorAlert = page.locator('[role="alert"].alert-danger');

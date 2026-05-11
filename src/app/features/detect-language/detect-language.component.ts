@@ -1,8 +1,16 @@
-import { ChangeDetectionStrategy, Component, inject, signal } from '@angular/core';
+import {
+	ChangeDetectionStrategy,
+	Component,
+	inject,
+	signal,
+} from '@angular/core';
 import { FormBuilder, ReactiveFormsModule, Validators } from '@angular/forms';
-import { apiErrorMessage } from './api-error.util';
-import { LANGUAGE_FORMATS } from './languages';
-import { type DetectResponse, TranslateApiService } from './translate-api.service';
+import {
+	type DetectResponse,
+	TranslateApiService,
+} from '../../core/services/translate-api.service';
+import { apiErrorMessage } from '../../core/utils/api-error.util';
+import { LANGUAGE_FORMATS } from '../../core/utils/languages';
 
 @Component({
 	selector: 'app-detect-language',

@@ -44,19 +44,14 @@ app.get('/api/grpc-url', (_req, res) => {
 
 app.post('/api/translate', async (req, res) => {
 	try {
-		const {
-			text,
-			source_language,
-			target_language,
-			model,
-			language_format,
-		} = req.body as {
-			text: string;
-			source_language: string;
-			target_language: string;
-			model?: string;
-			language_format?: string;
-		};
+		const { text, source_language, target_language, model, language_format } =
+			req.body as {
+				text: string;
+				source_language: string;
+				target_language: string;
+				model?: string;
+				language_format?: string;
+			};
 		const result = await translateText({
 			text,
 			sourceLanguage: source_language ?? '',

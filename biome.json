@@ -1,5 +1,5 @@
 {
-	"$schema": "https://biomejs.dev/schemas/2.4.14/schema.json",
+	"$schema": "https://biomejs.dev/schemas/2.4.15/schema.json",
 	"vcs": {
 		"enabled": true,
 		"clientKind": "git",
@@ -11,7 +11,8 @@
 			"!dist",
 			"!node_modules",
 			"!**/*.angular-cli.json",
-			"!src/environments/*"
+			"!src/environments/*",
+			"!**/*.html"
 		]
 	},
 	"formatter": {
@@ -21,7 +22,10 @@
 	"linter": {
 		"enabled": true,
 		"rules": {
-			"recommended": true
+			"recommended": true,
+			"complexity": {
+				"useLiteralKeys": "off"
+			}
 		}
 	},
 	"javascript": {
@@ -42,7 +46,7 @@
 	},
 	"overrides": [
 		{
-			"includes": ["src/server.ts", "src/grpc-client.ts"],
+			"includes": ["src/server.ts", "src/server/grpc-client.ts"],
 			"linter": {
 				"rules": {
 					"suspicious": {

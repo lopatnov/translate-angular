@@ -1,10 +1,19 @@
-import { ChangeDetectionStrategy, Component, DestroyRef, inject, signal } from '@angular/core';
+import {
+	ChangeDetectionStrategy,
+	Component,
+	DestroyRef,
+	inject,
+	signal,
+} from '@angular/core';
 import { FormBuilder, ReactiveFormsModule, Validators } from '@angular/forms';
-import { apiErrorMessage } from './api-error.util';
-import { CapabilitiesService } from './capabilities.service';
-import { useLangFormat } from './lang-format.util';
-import { LANGUAGE_FORMATS, LANGUAGES } from './languages';
-import { type TranslateResponse, TranslateApiService } from './translate-api.service';
+import { CapabilitiesService } from '../../core/services/capabilities.service';
+import {
+	TranslateApiService,
+	type TranslateResponse,
+} from '../../core/services/translate-api.service';
+import { apiErrorMessage } from '../../core/utils/api-error.util';
+import { useLangFormat } from '../../core/utils/lang-format.util';
+import { LANGUAGE_FORMATS, LANGUAGES } from '../../core/utils/languages';
 
 @Component({
 	selector: 'app-text-translation',
@@ -37,7 +46,9 @@ export class TextTranslationComponent {
 		this.destroyRef,
 		(native) => {
 			const ctrl = this.form.controls.target_language;
-			native ? ctrl.setValidators([Validators.required]) : ctrl.clearValidators();
+			native
+				? ctrl.setValidators([Validators.required])
+				: ctrl.clearValidators();
 			ctrl.updateValueAndValidity({ emitEvent: false });
 			this.form.patchValue(
 				native
@@ -59,7 +70,13 @@ export class TextTranslationComponent {
 			this.form.getRawValue();
 
 		this.api
-			.translate({ text, source_language, target_language, model: model || undefined, language_format })
+			.translate({
+				text,
+				source_language,
+				target_language,
+				model: model || undefined,
+				language_format,
+			})
 			.subscribe({
 				next: (data) => {
 					this.result.set(data);
