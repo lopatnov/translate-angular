@@ -7,30 +7,16 @@
 			"type": "npm",
 			"script": "start",
 			"isBackground": true,
-			// Angular 21 (esbuild) uses a different output format from the old webpack
-			// dev server. The Angular Language Service handles TypeScript/template errors
-			// in the Problems panel — no need for a $tsc problem matcher here.
 			"problemMatcher": {
-				"owner": "angular",
-				"pattern": [
-					{
-						// Matches Angular 21 esbuild error lines:
-						// "  ✘ [ERROR] TS2345: ..." or "ERROR [plugin angular-compiler] ..."
-						"regexp": "^\\s*(✘|ERROR|error).*$",
-						"message": 0
-					}
-				],
+				"owner": "typescript",
+				"pattern": "$tsc",
 				"background": {
 					"activeOnStart": true,
 					"beginsPattern": {
-						// Matches both initial build ("Building application...") and
-						// subsequent rebuilds ("Changes detected...") in Angular 21.
-						"regexp": "(Building|Changes detected|Rebuilding)"
+						"regexp": "Changes detected"
 					},
 					"endsPattern": {
-						// Angular 21 esbuild: "Application bundle generation complete."
-						// or "Application bundle generation FAILED."
-						"regexp": "Application bundle generation (complete|FAILED|failed)"
+						"regexp": "bundle generation (complete|failed)"
 					}
 				}
 			}
@@ -65,20 +51,15 @@
 				"panel": "dedicated"
 			},
 			"problemMatcher": {
-				"owner": "angular",
-				"pattern": [
-					{
-						"regexp": "^\\s*(✘|ERROR|error).*$",
-						"message": 0
-					}
-				],
+				"owner": "typescript",
+				"pattern": "$tsc",
 				"background": {
 					"activeOnStart": true,
 					"beginsPattern": {
-						"regexp": "(Building|Changes detected|Rebuilding)"
+						"regexp": "Building\\.\\.\\."
 					},
 					"endsPattern": {
-						"regexp": "Application bundle generation (complete|FAILED|failed)"
+						"regexp": "bundle generation complete"
 					}
 				}
 			}
@@ -89,20 +70,15 @@
 			"script": "test",
 			"isBackground": true,
 			"problemMatcher": {
-				"owner": "angular",
-				"pattern": [
-					{
-						"regexp": "^\\s*(✘|ERROR|error).*$",
-						"message": 0
-					}
-				],
+				"owner": "typescript",
+				"pattern": "$tsc",
 				"background": {
 					"activeOnStart": true,
 					"beginsPattern": {
-						"regexp": "(Building|Changes detected|Rebuilding)"
+						"regexp": "Changes detected"
 					},
 					"endsPattern": {
-						"regexp": "Application bundle generation (complete|FAILED|failed)"
+						"regexp": "bundle generation (complete|failed)"
 					}
 				}
 			}
