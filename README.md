@@ -1,61 +1,183 @@
 # Translate Studio
 
-Lopatnov.Translate Angular client
+A manual testing UI for the [Lopatnov.Translate](https://github.com/lopatnov/translate) gRPC service. Built with **Angular 21 + SSR**, it lets you exercise every gRPC endpoint through a clean web interface without writing a single `grpcurl` command.
 
-This project was generated using [Angular CLI](https://github.com/angular/angular-cli) version 21.2.9.
-
-## Development server
-
-To start a local development server, run:
-
-```bash
-ng serve
+```
+Browser → Angular (port 4200) → Express SSR → @grpc/grpc-js → gRPC service (port 5100)
 ```
 
-Once the server is running, open your browser and navigate to `http://localhost:4200/`. The application will automatically reload whenever you modify any of the source files.
+---
 
-## Code scaffolding
+## Pages
 
-Angular CLI includes powerful code scaffolding tools. To generate a new component, run:
+| Route | Purpose | gRPC RPC |
+|---|---|---|
+| `/` | Service status, available models | `GetCapabilities` |
+| `/translate` | Text translation with auto-detect | `TranslateText` |
+| `/detect` | Language detection + confidence | `DetectLanguage` |
+| `/localize` | JSON i18n file translation | `TranslateLocalization` |
+| `/transcribe` | WAV → transcript + segments | `TranscribeAudio` |
 
-```bash
-ng generate component component-name
-```
+---
 
-For a complete list of available schematics (such as `components`, `directives`, or `pipes`), run:
+## Prerequisites
 
-```bash
-ng generate --help
-```
+| Tool | Version | Notes |
+|---|---|---|
+| Node.js | 20 LTS+ | |
+| npm | 11+ | |
+| Angular CLI | 21 | `npm i -g @angular/cli` |
+| buf CLI | 1.x | Required only to regenerate gRPC client after proto changes |
+| Lopatnov.Translate | running | Default: `localhost:5100` |
 
-## Building
+---
 
-To build the project run:
-
-```bash
-ng build
-```
-
-This will compile your project and store the build artifacts in the `dist/` directory. By default, the production build optimizes your application for performance and speed.
-
-## Running unit tests
-
-To execute unit tests with the [Vitest](https://vitest.dev/) test runner, use the following command:
+## Getting started
 
 ```bash
-ng test
+git clone https://github.com/lopatnov/translate-angular.git
+cd translate-angular
+npm install
+
+# Start the dev server (includes Angular SSR + gRPC proxy on port 4200)
+npm start
 ```
 
-## Running end-to-end tests
+Open **http://localhost:4200** — the Dashboard will show service status if the gRPC service is reachable.
 
-For end-to-end (e2e) testing, run:
+To point at a different gRPC host:
 
 ```bash
-ng e2e
+TRANSLATE_GRPC_URL=my-server:5100 npm start
 ```
 
-Angular CLI does not come with an end-to-end testing framework by default. You can choose one that suits your needs.
+---
 
-## Additional Resources
+## npm scripts
 
-For more information on using the Angular CLI, including detailed command references, visit the [Angular CLI Overview and Command Reference](https://angular.dev/tools/cli) page.
+| Script | Description |
+|---|---|
+| `npm start` | Dev server with HMR (port 4200) |
+| `npm run build` | Production build → `dist/` |
+| `npm run generate` | Regenerate gRPC client from `src/protos/translate.proto` via buf + ts-proto |
+| `npm run lint` | Biome lint with auto-fix |
+| `npm run format` | Biome format (write) |
+| `npm run check` | Biome check — reports only, for CI |
+| `npm run e2e` | Playwright end-to-end tests (headless) |
+| `npm run e2e:ui` | Playwright with interactive UI |
+| `npm run debug:ssr` | Start built SSR server with Node inspector on port 9229 |
+
+---
+
+## Architecture
+
+### Dev-time request flow
+
+```
+Browser
+  └─► ng serve (4200)
+        └─► Express middleware (server.ts)
+              ├─ GET /api/capabilities   ─► getCapabilities()
+              ├─ POST /api/translate     ─► translateText()
+              ├─ POST /api/detect        ─► detectLanguage()
+              ├─ POST /api/localize      ─► translateLocalization()
+              └─ POST /api/transcribe    ─► transcribeAudio()
+                                               └─► @grpc/grpc-js → localhost:5100
+```
+
+### gRPC client (generated)
+
+The TypeScript gRPC client is generated from `src/protos/translate.proto` using [buf](https://buf.build) + [ts-proto](https://github.com/stephenh/ts-proto):
+
+```bash
+npm run generate        # runs: buf generate
+```
+
+Generated output lands in **`src/generated/translate.ts`** (gitignored — always regenerate locally). The file exposes fully-typed interfaces and a `TranslateServiceClient` class; `src/grpc-client.ts` wraps it into promise-based helper functions used by `src/server.ts`.
+
+After updating `translate.proto`, run `npm run generate` and the TypeScript compiler will surface any breaking changes immediately.
+
+---
+
+## Debugging (VS Code / Cursor)
+
+Three launch configurations are pre-configured in `.vscode/launch.json`:
+
+| Config | Description |
+|---|---|
+| **Open browser (ng serve)** | Starts `ng serve`, opens Chrome at 4200 |
+| **Debug SSR backend** | Builds in dev mode, launches `server.mjs` with `--enable-source-maps`. Set breakpoints in `server.ts` / `grpc-client.ts`. Server runs on **port 4000**. |
+| **Debug SSR + Chrome** | Compound: SSR debugger + Chrome side by side |
+
+Press **F5** → pick a config → breakpoints work in TypeScript source files.
+
+---
+
+## End-to-end tests
+
+Tests live in `e2e/` and run against the `ng serve` dev server (started automatically by Playwright).
+
+```bash
+npm run e2e           # headless, all browsers
+npm run e2e:ui        # Playwright UI — interactive trace viewer
+```
+
+Test files:
+
+| File | Coverage |
+|---|---|
+| `example.spec.ts` | Navigation: sidebar links, routing for all 5 pages |
+| `dashboard.spec.ts` | Heading, loading/capabilities/error states |
+| `translate.spec.ts` | Form controls, button enable/disable, Clear |
+| `detect.spec.ts` | Form controls, button enable/disable, Clear |
+| `localize.spec.ts` | JSON textarea, Upload JSON, collapsible panel |
+| `transcribe.spec.ts` | WAV file input, accept attribute, disabled state |
+
+Tests do **not** require the gRPC service to be running — they validate UI structure and form behavior only.
+
+---
+
+## Environment variables
+
+| Variable | Default | Description |
+|---|---|---|
+| `TRANSLATE_GRPC_URL` | `localhost:5100` | gRPC service address |
+| `PORT` | `4000` | SSR server port (production / debug mode only) |
+
+---
+
+## Project structure
+
+```
+src/
+├── protos/
+│   └── translate.proto          # Source of truth for gRPC contract
+├── generated/
+│   └── translate.ts             # ← generated by buf (gitignored)
+├── grpc-client.ts               # Typed promise wrappers around gRPC client
+├── server.ts                    # Express SSR + /api/* proxy routes
+└── app/
+    ├── app.ts / app.html        # Shell: sidebar nav + router outlet
+    ├── app.routes.ts            # Lazy-loaded routes (Client render mode)
+    ├── translate-api.service.ts # Angular HttpClient service → /api/*
+    ├── languages.ts             # Shared language list + format options
+    ├── dashboard.component.ts
+    ├── text-translation.component.ts
+    ├── detect-language.component.ts
+    ├── locale-files.component.ts
+    └── speech-to-text.component.ts
+```
+
+---
+
+## Tech stack
+
+| Layer | Technology |
+|---|---|
+| Framework | Angular 21 (standalone components, signals, SSR) |
+| UI | Bootstrap 5, dark theme |
+| Server | Express 5 + `@angular/ssr` |
+| gRPC | `@grpc/grpc-js` + ts-proto generated client |
+| Code gen | buf CLI + ts-proto 2.x |
+| Linting | Biome 2.x |
+| Testing | Playwright 1.x |
