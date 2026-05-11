@@ -12,11 +12,15 @@ import { TranslateApiService } from '@core/services/translate-api.service';
 import { apiErrorMessage } from '@core/utils/api-error.util';
 import { useLangFormat } from '@core/utils/lang-format.util';
 import { LANGUAGE_FORMATS, LANGUAGES } from '@core/utils/languages';
+import { CopyButtonComponent } from '@app/shared/components/copy-button/copy-button.component';
+import { ErrorAlertComponent } from '@app/shared/components/error-alert/error-alert.component';
 import { LanguageSelectComponent } from '@app/shared/components/language-select/language-select.component';
+import { PageHeaderComponent } from '@app/shared/components/page-header/page-header.component';
+import { SubmitButtonComponent } from '@app/shared/components/submit-button/submit-button.component';
 
 @Component({
 	selector: 'app-locale-files',
-	imports: [ReactiveFormsModule, LanguageSelectComponent],
+	imports: [ReactiveFormsModule, LanguageSelectComponent, SubmitButtonComponent, ErrorAlertComponent, PageHeaderComponent, CopyButtonComponent],
 	templateUrl: './locale-files.component.html',
 	styleUrl: './locale-files.component.scss',
 	changeDetection: ChangeDetectionStrategy.OnPush,
@@ -126,10 +130,6 @@ export class LocaleFilesComponent {
 		});
 		this.result.set(null);
 		this.error.set(null);
-	}
-
-	copy(text: string): void {
-		navigator.clipboard.writeText(text);
 	}
 
 	download(): void {

@@ -1,7 +1,6 @@
-<div class="mb-4">
-  <h2 class="page-title mb-1">Text translation</h2>
-  <p class="lead text-muted mb-0">Translate text between any two supported languages.</p>
-</div>
+<app-page-header
+  title="Text translation"
+  subtitle="Translate text between any two supported languages." />
 
 <div class="card section-card mb-4">
   <div class="card-body">
@@ -67,23 +66,18 @@
       </div>
 
       <div class="d-flex gap-2">
-        <button type="submit" class="btn btn-primary" [disabled]="form.invalid || loading()">
-          @if (loading()) {
-            <span class="spinner-border spinner-border-sm me-2" role="status" aria-hidden="true"></span>
-            Translating…
-          } @else {
-            Translate
-          }
-        </button>
+        <app-submit-button
+          [disabled]="form.invalid"
+          [loading]="loading()"
+          label="Translate"
+          loadingLabel="Translating…" />
         <button type="button" class="btn btn-outline-secondary" (click)="clear()">Clear</button>
       </div>
     </form>
   </div>
 </div>
 
-@if (error()) {
-  <div class="alert alert-danger" role="alert">{{ error() }}</div>
-}
+<app-error-alert [message]="error()" />
 
 @if (result()) {
   <div class="card section-card">
@@ -98,10 +92,7 @@
     </div>
     <div class="card-body">
       <pre class="transcript-preview">{{ result()!.translatedText }}</pre>
-      <button type="button" class="btn btn-outline-secondary btn-sm mt-2"
-              (click)="copy(result()!.translatedText)">
-        Copy to clipboard
-      </button>
+      <app-copy-button [text]="result()!.translatedText" label="Copy to clipboard" />
     </div>
   </div>
 }

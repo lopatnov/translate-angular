@@ -9,10 +9,13 @@ import type { DetectResponse } from '@shared/api.types';
 import { TranslateApiService } from '@core/services/translate-api.service';
 import { apiErrorMessage } from '@core/utils/api-error.util';
 import { LANGUAGE_FORMATS } from '@core/utils/languages';
+import { ErrorAlertComponent } from '@app/shared/components/error-alert/error-alert.component';
+import { PageHeaderComponent } from '@app/shared/components/page-header/page-header.component';
+import { SubmitButtonComponent } from '@app/shared/components/submit-button/submit-button.component';
 
 @Component({
 	selector: 'app-detect-language',
-	imports: [ReactiveFormsModule],
+	imports: [ReactiveFormsModule, SubmitButtonComponent, ErrorAlertComponent, PageHeaderComponent],
 	templateUrl: './detect-language.component.html',
 	styleUrl: './detect-language.component.scss',
 	changeDetection: ChangeDetectionStrategy.OnPush,

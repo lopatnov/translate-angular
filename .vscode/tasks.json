@@ -7,16 +7,30 @@
 			"type": "npm",
 			"script": "start",
 			"isBackground": true,
+			// Angular 21 (esbuild) uses a different output format from the old webpack
+			// dev server. The Angular Language Service handles TypeScript/template errors
+			// in the Problems panel — no need for a $tsc problem matcher here.
 			"problemMatcher": {
-				"owner": "typescript",
-				"pattern": "$tsc",
+				"owner": "angular",
+				"pattern": [
+					{
+						// Matches Angular 21 esbuild error lines:
+						// "  ✘ [ERROR] TS2345: ..." or "ERROR [plugin angular-compiler] ..."
+						"regexp": "^\\s*(✘|ERROR|error).*$",
+						"message": 0
+					}
+				],
 				"background": {
 					"activeOnStart": true,
 					"beginsPattern": {
-						"regexp": "Changes detected"
+						// Matches both initial build ("Building application...") and
+						// subsequent rebuilds ("Changes detected...") in Angular 21.
+						"regexp": "(Building|Changes detected|Rebuilding)"
 					},
 					"endsPattern": {
-						"regexp": "bundle generation (complete|failed)"
+						// Angular 21 esbuild: "Application bundle generation complete."
+						// or "Application bundle generation FAILED."
+						"regexp": "Application bundle generation (complete|FAILED|failed)"
 					}
 				}
 			}
@@ -51,15 +65,20 @@
 				"panel": "dedicated"
 			},
 			"problemMatcher": {
-				"owner": "typescript",
-				"pattern": "$tsc",
+				"owner": "angular",
+				"pattern": [
+					{
+						"regexp": "^\\s*(✘|ERROR|error).*$",
+						"message": 0
+					}
+				],
 				"background": {
 					"activeOnStart": true,
 					"beginsPattern": {
-						"regexp": "Building\\.\\.\\."
+						"regexp": "(Building|Changes detected|Rebuilding)"
 					},
 					"endsPattern": {
-						"regexp": "bundle generation complete"
+						"regexp": "Application bundle generation (complete|FAILED|failed)"
 					}
 				}
 			}
@@ -70,15 +89,20 @@
 			"script": "test",
 			"isBackground": true,
 			"problemMatcher": {
-				"owner": "typescript",
-				"pattern": "$tsc",
+				"owner": "angular",
+				"pattern": [
+					{
+						"regexp": "^\\s*(✘|ERROR|error).*$",
+						"message": 0
+					}
+				],
 				"background": {
 					"activeOnStart": true,
 					"beginsPattern": {
-						"regexp": "Changes detected"
+						"regexp": "(Building|Changes detected|Rebuilding)"
 					},
 					"endsPattern": {
-						"regexp": "bundle generation (complete|failed)"
+						"regexp": "Application bundle generation (complete|FAILED|failed)"
 					}
 				}
 			}

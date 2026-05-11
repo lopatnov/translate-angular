@@ -1,7 +1,6 @@
-<div class="mb-4">
-  <h2 class="page-title mb-1">Language detection</h2>
-  <p class="lead text-muted mb-0">Detect the language of any text string.</p>
-</div>
+<app-page-header
+  title="Language detection"
+  subtitle="Detect the language of any text string." />
 
 <div class="card section-card mb-4">
   <div class="card-body">
@@ -25,23 +24,18 @@
       </div>
 
       <div class="d-flex gap-2">
-        <button type="submit" class="btn btn-primary" [disabled]="form.invalid || loading()">
-          @if (loading()) {
-            <span class="spinner-border spinner-border-sm me-2" role="status" aria-hidden="true"></span>
-            Detecting…
-          } @else {
-            Detect language
-          }
-        </button>
+        <app-submit-button
+          [disabled]="form.invalid"
+          [loading]="loading()"
+          label="Detect language"
+          loadingLabel="Detecting…" />
         <button type="button" class="btn btn-outline-secondary" (click)="clear()">Clear</button>
       </div>
     </form>
   </div>
 </div>
 
-@if (error()) {
-  <div class="alert alert-danger" role="alert">{{ error() }}</div>
-}
+<app-error-alert [message]="error()" />
 
 @if (result()) {
   <div class="card section-card">

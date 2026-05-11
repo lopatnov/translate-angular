@@ -1,9 +1,6 @@
-<div class="mb-4">
-  <h2 class="page-title mb-1">Localization files</h2>
-  <p class="lead text-muted mb-0">
-    Translate all string values in a JSON i18n file, preserving key structure.
-  </p>
-</div>
+<app-page-header
+  title="Localization files"
+  subtitle="Translate all string values in a JSON i18n file, preserving key structure." />
 
 <div class="card section-card mb-4">
   <div class="card-body">
@@ -83,23 +80,18 @@
       </details>
 
       <div class="d-flex gap-2">
-        <button type="submit" class="btn btn-primary" [disabled]="form.invalid || loading()">
-          @if (loading()) {
-            <span class="spinner-border spinner-border-sm me-2" role="status" aria-hidden="true"></span>
-            Translating…
-          } @else {
-            Translate JSON
-          }
-        </button>
+        <app-submit-button
+          [disabled]="form.invalid"
+          [loading]="loading()"
+          label="Translate JSON"
+          loadingLabel="Translating…" />
         <button type="button" class="btn btn-outline-secondary" (click)="clear()">Clear</button>
       </div>
     </form>
   </div>
 </div>
 
-@if (error()) {
-  <div class="alert alert-danger" role="alert">{{ error() }}</div>
-}
+<app-error-alert [message]="error()" />
 
 @if (result()) {
   <div class="card section-card">
@@ -114,11 +106,8 @@
                 [value]="prettyResult()">
       </textarea>
       <div class="d-flex gap-2 mt-2">
-        <button type="button" class="btn btn-outline-secondary btn-sm"
-                (click)="copy(prettyResult())">
-          Copy
-        </button>
-        <button type="button" class="btn btn-outline-secondary btn-sm"
+        <app-copy-button [text]="prettyResult()" label="Copy" />
+        <button type="button" class="btn btn-outline-secondary btn-sm mt-2"
                 (click)="download()">
           Download
         </button>
