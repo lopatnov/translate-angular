@@ -6,7 +6,14 @@ import {
 	writeResponseToNodeResponse,
 } from '@angular/ssr/node';
 import express from 'express';
-import { grpcCall, grpcUrl } from './grpc-client';
+import {
+	detectLanguage,
+	getCapabilities,
+	grpcUrl,
+	transcribeAudio,
+	translateLocalization,
+	translateText,
+} from './grpc-client';
 
 const browserDistFolder = join(import.meta.dirname, '../browser');
 
@@ -24,7 +31,7 @@ app.use(express.json({ limit: '52mb' }));
 
 app.get('/api/capabilities', async (_req, res) => {
 	try {
-		const result = await grpcCall('GetCapabilities', {});
+		const result = await getCapabilities();
 		res.json(result);
 	} catch (err) {
 		res.status(502).json({ error: errorMessage(err) });
@@ -37,7 +44,27 @@ app.get('/api/grpc-url', (_req, res) => {
 
 app.post('/api/translate', async (req, res) => {
 	try {
-		const result = await grpcCall('TranslateText', req.body);
+		const {
+			text,
+			source_language,
+			target_language,
+			model,
+			language_format,
+		} = req.body as {
+			text: string;
+			source_language: string;
+			target_language: string;
+			model?: string;
+			language_format?: string;
+		};
+		const result = await translateText({
+			text,
+			sourceLanguage: source_language ?? '',
+			targetLanguage: target_language ?? '',
+			model: model ?? '',
+			context: '',
+			languageFormat: language_format ?? 'bcp47',
+		});
 		res.json(result);
 	} catch (err) {
 		res.status(502).json({ error: errorMessage(err) });
@@ -46,7 +73,14 @@ app.post('/api/translate', async (req, res) => {
 
 app.post('/api/detect', async (req, res) => {
 	try {
-		const result = await grpcCall('DetectLanguage', req.body);
+		const { text, language_format } = req.body as {
+			text: string;
+			language_format?: string;
+		};
+		const result = await detectLanguage({
+			text,
+			languageFormat: language_format ?? 'bcp47',
+		});
 		res.json(result);
 	} catch (err) {
 		res.status(502).json({ error: errorMessage(err) });
@@ -55,7 +89,30 @@ app.post('/api/detect', async (req, res) => {
 
 app.post('/api/localize', async (req, res) => {
 	try {
-		const result = await grpcCall('TranslateLocalization', req.body);
+		const {
+			json,
+			source_language,
+			target_language,
+			model,
+			existing_translation,
+			language_format,
+		} = req.body as {
+			json: string;
+			source_language: string;
+			target_language: string;
+			model?: string;
+			existing_translation?: string;
+			language_format?: string;
+		};
+		const result = await translateLocalization({
+			json,
+			sourceLanguage: source_language ?? '',
+			targetLanguage: target_language ?? '',
+			model: model ?? '',
+			existingTranslation: existing_translation ?? '',
+			context: '',
+			languageFormat: language_format ?? 'bcp47',
+		});
 		res.json(result);
 	} catch (err) {
 		res.status(502).json({ error: errorMessage(err) });
@@ -69,11 +126,11 @@ app.post('/api/transcribe', async (req, res) => {
 			language?: string;
 			language_format?: string;
 		};
-		const audioBuffer = Buffer.from(audio_data_base64, 'base64');
-		const result = await grpcCall('TranscribeAudio', {
-			audio_data: audioBuffer,
+		const result = await transcribeAudio({
+			audioData: Buffer.from(audio_data_base64, 'base64'),
 			language: language ?? 'auto',
-			language_format: language_format ?? 'bcp47',
+			audioFormat: '',
+			languageFormat: language_format ?? 'bcp47',
 		});
 		res.json(result);
 	} catch (err) {

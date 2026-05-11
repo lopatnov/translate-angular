@@ -91,16 +91,16 @@ import { LANGUAGE_FORMATS, LANGUAGES } from './languages';
         <div class="card-header d-flex justify-content-between align-items-center">
           <h3 class="h6 mb-0">Result</h3>
           <div class="d-flex gap-2 align-items-center flex-wrap">
-            @if (result()!.detected_language) {
-              <span class="badge bg-warning text-dark">Detected: {{ result()!.detected_language }}</span>
+            @if (result()!.detectedLanguage) {
+              <span class="badge bg-warning text-dark">Detected: {{ result()!.detectedLanguage }}</span>
             }
-            <span class="badge bg-secondary">{{ result()!.model_used }}</span>
+            <span class="badge bg-secondary">{{ result()!.modelUsed }}</span>
           </div>
         </div>
         <div class="card-body">
-          <pre class="transcript-preview">{{ result()!.translated_text }}</pre>
+          <pre class="transcript-preview">{{ result()!.translatedText }}</pre>
           <button type="button" class="btn btn-outline-secondary btn-sm mt-2"
-                  (click)="copy(result()!.translated_text)">
+                  (click)="copy(result()!.translatedText)">
             Copy to clipboard
           </button>
         </div>

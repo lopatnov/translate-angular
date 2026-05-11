@@ -1,42 +1,83 @@
-import { dirname, join } from 'node:path';
-import { fileURLToPath } from 'node:url';
-import grpc from '@grpc/grpc-js';
-import protoLoader from '@grpc/proto-loader';
+import { createRequire } from 'node:module';
+import type { ChannelCredentials } from '@grpc/grpc-js';
+import type {
+	DetectLanguageRequest,
+	DetectLanguageResponse,
+	GetCapabilitiesRequest,
+	GetCapabilitiesResponse,
+	TranscribeAudioRequest,
+	TranscribeAudioResponse,
+	TranslateLocalizationRequest,
+	TranslateLocalizationResponse,
+	TranslateServiceClient as ITranslateServiceClient,
+	TranslateTextRequest,
+	TranslateTextResponse,
+} from './generated/translate';
+import { TranslateServiceClient } from './generated/translate';
 
-const __dirname = dirname(fileURLToPath(import.meta.url));
-const PROTO_PATH = join(__dirname, 'protos', 'translate.proto');
+// CJS packages must be loaded via createRequire — ESM default imports
+// from esbuild (Angular's build tool) do not correctly resolve CJS module.exports.
+const require = createRequire(import.meta.url);
+// biome-ignore lint/suspicious/noExplicitAny: CJS interop — credentials factory only
+const grpc: { credentials: { createInsecure(): ChannelCredentials } } =
+	require('@grpc/grpc-js');
+
 const GRPC_URL = process.env['TRANSLATE_GRPC_URL'] ?? 'localhost:5100';
 
-// biome-ignore lint/suspicious/noExplicitAny: gRPC generated types are untyped
-let _client: any = null;
+let _client: ITranslateServiceClient | null = null;
 
-// biome-ignore lint/suspicious/noExplicitAny: gRPC generated types are untyped
-function getClient(): any {
+function getClient(): ITranslateServiceClient {
 	if (_client) return _client;
-
-	const packageDef = protoLoader.loadSync(PROTO_PATH, {
-		keepCase: true,
-		longs: String,
-		enums: String,
-		defaults: true,
-		oneofs: true,
-	});
-
-	// biome-ignore lint/suspicious/noExplicitAny: dynamic gRPC package definition
-	const pkg = grpc.loadPackageDefinition(packageDef) as any;
-	_client = new pkg.lopatnov.translate.v1.TranslateService(
+	_client = new TranslateServiceClient(
 		GRPC_URL,
 		grpc.credentials.createInsecure(),
 	);
 	return _client;
 }
 
-export function grpcCall<T>(method: string, request: unknown): Promise<T> {
-	return new Promise((resolve, reject) =>
-		getClient()[method](request, (err: Error | null, response: T) =>
-			err ? reject(err) : resolve(response),
+/** Promisify a single unary gRPC call. */
+function call<Req, Res>(
+	method: (
+		req: Req,
+		cb: (err: Error | null, res: Res) => void,
+	) => unknown,
+	request: Req,
+): Promise<Res> {
+	return new Promise<Res>((resolve, reject) =>
+		method.call(getClient(), request, (err: Error | null, res: Res) =>
+			err ? reject(err) : resolve(res),
 		),
 	);
+}
+
+export function getCapabilities(
+	req: GetCapabilitiesRequest = {},
+): Promise<GetCapabilitiesResponse> {
+	return call(getClient().getCapabilities.bind(getClient()), req);
+}
+
+export function translateText(
+	req: TranslateTextRequest,
+): Promise<TranslateTextResponse> {
+	return call(getClient().translateText.bind(getClient()), req);
+}
+
+export function detectLanguage(
+	req: DetectLanguageRequest,
+): Promise<DetectLanguageResponse> {
+	return call(getClient().detectLanguage.bind(getClient()), req);
+}
+
+export function translateLocalization(
+	req: TranslateLocalizationRequest,
+): Promise<TranslateLocalizationResponse> {
+	return call(getClient().translateLocalization.bind(getClient()), req);
+}
+
+export function transcribeAudio(
+	req: TranscribeAudioRequest,
+): Promise<TranscribeAudioResponse> {
+	return call(getClient().transcribeAudio.bind(getClient()), req);
 }
 
 export function grpcUrl(): string {

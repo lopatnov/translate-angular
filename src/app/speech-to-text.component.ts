@@ -85,16 +85,16 @@ import { LANGUAGE_FORMATS, LANGUAGES } from './languages';
       <div class="card section-card mb-3">
         <div class="card-header d-flex justify-content-between align-items-center">
           <h3 class="h6 mb-0">Transcription</h3>
-          @if (result()!.detected_language) {
+          @if (result()!.detectedLanguage) {
             <span class="badge bg-warning text-dark">
-              Language: {{ result()!.detected_language }}
+              Language: {{ result()!.detectedLanguage }}
             </span>
           }
         </div>
         <div class="card-body">
-          <pre class="transcript-preview">{{ result()!.full_text }}</pre>
+          <pre class="transcript-preview">{{ result()!.fullText }}</pre>
           <button type="button" class="btn btn-outline-secondary btn-sm mt-2"
-                  (click)="copy(result()!.full_text)">
+                  (click)="copy(result()!.fullText)">
             Copy text
           </button>
         </div>
@@ -117,8 +117,8 @@ import { LANGUAGE_FORMATS, LANGUAGES } from './languages';
               <tbody>
                 @for (seg of result()!.segments; track $index) {
                   <tr>
-                    <td class="ps-3 text-muted">{{ formatTime(seg.start_time) }}</td>
-                    <td class="text-muted">{{ formatTime(seg.end_time) }}</td>
+                    <td class="ps-3 text-muted">{{ formatTime(seg.startTime) }}</td>
+                    <td class="text-muted">{{ formatTime(seg.endTime) }}</td>
                     <td>{{ seg.text }}</td>
                   </tr>
                 }

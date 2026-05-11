@@ -3,14 +3,14 @@ import { HttpClient } from '@angular/common/http';
 import type { Observable } from 'rxjs';
 
 // ---------------------------------------------------------------------------
-// Types
+// Types — field names match the ts-proto generated camelCase interfaces.
 // ---------------------------------------------------------------------------
 
 export interface CapabilitiesResponse {
-	available_models: string[];
-	available_voices: string[];
-	stt_available: boolean;
-	tts_available: boolean;
+	availableModels: string[];
+	availableVoices: string[];
+	sttAvailable: boolean;
+	ttsAvailable: boolean;
 }
 
 export interface TranslateRequest {
@@ -18,14 +18,13 @@ export interface TranslateRequest {
 	source_language?: string;
 	target_language: string;
 	model?: string;
-	context?: string;
 	language_format?: string;
 }
 
 export interface TranslateResponse {
-	translated_text: string;
-	detected_language?: string;
-	model_used: string;
+	translatedText: string;
+	detectedLanguage?: string;
+	modelUsed: string;
 }
 
 export interface DetectRequest {
@@ -49,7 +48,7 @@ export interface LocalizeRequest {
 
 export interface LocalizeResponse {
 	json: string;
-	strings_translated: number;
+	stringsTranslated: number;
 }
 
 export interface TranscribeRequest {
@@ -60,13 +59,13 @@ export interface TranscribeRequest {
 
 export interface TranscriptionSegment {
 	text: string;
-	start_time: number;
-	end_time: number;
+	startTime: number;
+	endTime: number;
 }
 
 export interface TranscribeResponse {
-	full_text: string;
-	detected_language?: string;
+	fullText: string;
+	detectedLanguage?: string;
 	segments: TranscriptionSegment[];
 }
 

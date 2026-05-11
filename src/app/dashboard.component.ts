@@ -47,7 +47,7 @@ import {
               <dl class="row mb-0">
                 <dt class="col-6 fw-normal text-muted">Speech-to-text</dt>
                 <dd class="col-6">
-                  @if (caps()!.stt_available) {
+                  @if (caps()!.sttAvailable) {
                     <span class="badge bg-success">✓ enabled</span>
                   } @else {
                     <span class="badge bg-secondary">disabled</span>
@@ -56,7 +56,7 @@ import {
 
                 <dt class="col-6 fw-normal text-muted">Text-to-speech</dt>
                 <dd class="col-6">
-                  @if (caps()!.tts_available) {
+                  @if (caps()!.ttsAvailable) {
                     <span class="badge bg-success">✓ enabled</span>
                   } @else {
                     <span class="badge bg-secondary">disabled</span>
@@ -74,7 +74,7 @@ import {
               <h3 class="h6 mb-0">Available translation models</h3>
             </div>
             <div class="card-body d-flex flex-wrap gap-2 align-items-start">
-              @for (model of caps()!.available_models; track model) {
+              @for (model of caps()!.availableModels; track model) {
                 <span class="badge bg-warning text-dark fs-6">{{ model }}</span>
               } @empty {
                 <span class="text-muted small">No models configured</span>
@@ -93,7 +93,7 @@ import {
               <a routerLink="/translate" class="btn btn-primary">Text translation</a>
               <a routerLink="/detect" class="btn btn-outline-secondary">Language detection</a>
               <a routerLink="/localize" class="btn btn-outline-secondary">Localization files</a>
-              @if (caps()!.stt_available) {
+              @if (caps()!.sttAvailable) {
                 <a routerLink="/transcribe" class="btn btn-outline-secondary">Speech to text</a>
               }
             </div>

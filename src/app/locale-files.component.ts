@@ -109,7 +109,7 @@ import { LANGUAGE_FORMATS, LANGUAGES } from './languages';
         <div class="card-header d-flex justify-content-between align-items-center">
           <h3 class="h6 mb-0">Translated JSON</h3>
           <span class="badge bg-warning text-dark">
-            {{ result()!.strings_translated }} strings translated
+            {{ result()!.stringsTranslated }} strings translated
           </span>
         </div>
         <div class="card-body">

@@ -8,10 +8,14 @@
 		"watch": "ng build --watch --configuration development",
 		"test": "ng test",
 		"serve:ssr:translate-angular": "node dist/translate-angular/server/server.mjs",
-		"lint": "biome lint --apply .",
+		"lint": "biome lint --write .",
 		"format": "biome format --write .",
 		"check": "biome check . --reporter=github",
-		"lint:staged": "biome lint --apply --files-ignore=\"dist/**\""
+		"lint:staged": "biome lint --write .",
+		"generate": "buf generate",
+		"e2e": "playwright test",
+		"e2e:ui": "playwright test --ui",
+		"debug:ssr": "node --inspect=9229 --enable-source-maps dist/translate-angular/server/server.mjs"
 	},
 	"private": false,
 	"packageManager": "npm@11.6.2",
@@ -45,6 +49,7 @@
 		"jsdom": "^28.0.0",
 		"npm": "^11.13.0",
 		"prettier": "^3.8.1",
+		"ts-proto": "^2.11.8",
 		"typescript": "~5.9.2",
 		"vitest": "^4.0.8"
 	}

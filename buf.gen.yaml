@@ -1,0 +1,14 @@
+version: v2
+plugins:
+  - local: ["node", "./node_modules/ts-proto/protoc-gen-ts_proto"]
+    out: src/generated
+    opt:
+      # Generate typed gRPC client class compatible with @grpc/grpc-js
+      - outputServices=grpc-js
+      # Flat output — translate.ts alongside the other src files
+      - paths=source_relative
+      # Namespace import for protobufjs/minimal (safe with esbuild CJS interop)
+      - esModuleInterop=false
+      # Omit unused features
+      - outputTypeRegistry=false
+      - useDate=false
