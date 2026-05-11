@@ -44,10 +44,17 @@ import { LANGUAGE_FORMATS, LANGUAGES } from './languages';
               </select>
             </div>
             <div class="col-md-2">
-              <label class="form-label" for="model-input">Model</label>
-              <input id="model-input" class="form-control" formControlName="model"
-                     placeholder="default" aria-describedby="model-hint">
-              <div id="model-hint" class="form-text">Empty = default</div>
+              <label class="form-label" for="model-select">Model</label>
+              <select id="model-select" class="form-select" formControlName="model"
+                      aria-describedby="model-hint">
+                <option value="">Default</option>
+                @for (m of models(); track m) {
+                  <option [value]="m">{{ m }}</option>
+                }
+              </select>
+              <div id="model-hint" class="form-text">
+                @if (models().length === 0) { Loading… } @else { {{ models().length }} available }
+              </div>
             </div>
             <div class="col-md-2">
               <label class="form-label" for="lang-fmt">Language format</label>
@@ -117,6 +124,7 @@ export class TextTranslationComponent implements OnInit {
 	protected readonly loading = signal(false);
 	protected readonly error = signal<string | null>(null);
 	protected readonly result = signal<TranslateResponse | null>(null);
+	protected readonly models = signal<string[]>([]);
 
 	protected readonly form = this.fb.nonNullable.group({
 		text: ['', Validators.required],
@@ -128,6 +136,10 @@ export class TextTranslationComponent implements OnInit {
 
 	ngOnInit(): void {
 		this.form.patchValue({ source_language: 'auto', target_language: 'en' });
+		this.api.getCapabilities().subscribe({
+			next: (caps) => this.models.set(caps.availableModels),
+			error: () => { /* service unavailable — select stays at "Default" only */ },
+		});
 	}
 
 	submit(): void {

@@ -2,6 +2,7 @@ import {
 	ChangeDetectionStrategy,
 	Component,
 	inject,
+	OnInit,
 	signal,
 } from '@angular/core';
 import { FormBuilder, ReactiveFormsModule, Validators } from '@angular/forms';
@@ -45,8 +46,12 @@ import { LANGUAGE_FORMATS, LANGUAGES } from './languages';
             </div>
             <div class="col-md-2">
               <label class="form-label" for="loc-model">Model</label>
-              <input id="loc-model" class="form-control" formControlName="model"
-                     placeholder="default">
+              <select id="loc-model" class="form-select" formControlName="model">
+                <option value="">Default</option>
+                @for (m of models(); track m) {
+                  <option [value]="m">{{ m }}</option>
+                }
+              </select>
             </div>
             <div class="col-md-2">
               <label class="form-label" for="loc-fmt">Language format</label>
@@ -131,7 +136,7 @@ import { LANGUAGE_FORMATS, LANGUAGES } from './languages';
     }
   `,
 })
-export class LocaleFilesComponent {
+export class LocaleFilesComponent implements OnInit {
 	private readonly api = inject(TranslateApiService);
 	private readonly fb = inject(FormBuilder);
 
@@ -141,6 +146,7 @@ export class LocaleFilesComponent {
 	protected readonly error = signal<string | null>(null);
 	protected readonly result = signal<LocalizeResponse | null>(null);
 	protected readonly prettyResult = signal('');
+	protected readonly models = signal<string[]>([]);
 
 	protected readonly form = this.fb.nonNullable.group({
 		json: ['', Validators.required],
@@ -150,6 +156,13 @@ export class LocaleFilesComponent {
 		existing_translation: [''],
 		language_format: ['bcp47'],
 	});
+
+	ngOnInit(): void {
+		this.api.getCapabilities().subscribe({
+			next: (caps) => this.models.set(caps.availableModels),
+			error: () => { /* service unavailable — select stays at "Default" only */ },
+		});
+	}
 
 	onFileChange(event: Event): void {
 		const input = event.target as HTMLInputElement;

@@ -22,7 +22,6 @@ export const LANGUAGES = [
 ] as const;
 
 export const LANGUAGE_FORMATS = [
-	{ value: 'bcp47', label: 'BCP-47 (default)' },
-	{ value: 'flores200', label: 'FLORES-200' },
+	{ value: 'bcp47', label: 'BCP-47' },
 	{ value: 'native', label: 'Native' },
 ] as const;
