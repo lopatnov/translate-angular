@@ -9,11 +9,9 @@ import {
 } from '@angular/core';
 import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
 import { FormBuilder, ReactiveFormsModule, Validators } from '@angular/forms';
-import {
-	type TranscribeResponse,
-	TranslateApiService,
-} from './translate-api.service';
+import { apiErrorMessage } from './api-error.util';
 import { LANGUAGE_FORMATS, LANGUAGES } from './languages';
+import { type TranscribeResponse, TranslateApiService } from './translate-api.service';
 
 @Component({
 	selector: 'app-speech-to-text',
@@ -203,9 +201,7 @@ export class SpeechToTextComponent implements OnInit {
 					this.loading.set(false);
 				},
 				error: (err) => {
-					this.error.set(
-						err?.error?.error ?? err?.message ?? 'Transcription failed',
-					);
+					this.error.set(apiErrorMessage(err, 'Transcription failed'));
 					this.loading.set(false);
 				},
 			});

@@ -1,15 +1,8 @@
-import {
-	ChangeDetectionStrategy,
-	Component,
-	inject,
-	signal,
-} from '@angular/core';
+import { ChangeDetectionStrategy, Component, inject, signal } from '@angular/core';
 import { FormBuilder, ReactiveFormsModule, Validators } from '@angular/forms';
-import {
-	type DetectResponse,
-	TranslateApiService,
-} from './translate-api.service';
+import { apiErrorMessage } from './api-error.util';
 import { LANGUAGE_FORMATS } from './languages';
+import { type DetectResponse, TranslateApiService } from './translate-api.service';
 
 @Component({
 	selector: 'app-detect-language',
@@ -119,7 +112,7 @@ export class DetectLanguageComponent {
 				this.loading.set(false);
 			},
 			error: (err) => {
-				this.error.set(err?.error?.error ?? err?.message ?? 'Detection failed');
+				this.error.set(apiErrorMessage(err, 'Detection failed'));
 				this.loading.set(false);
 			},
 		});

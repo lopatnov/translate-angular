@@ -4,16 +4,14 @@ import {
 	computed,
 	DestroyRef,
 	inject,
-	OnInit,
 	signal,
 } from '@angular/core';
 import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
 import { FormBuilder, ReactiveFormsModule, Validators } from '@angular/forms';
-import {
-	type LocalizeResponse,
-	TranslateApiService,
-} from './translate-api.service';
+import { apiErrorMessage } from './api-error.util';
+import { CapabilitiesService } from './capabilities.service';
 import { LANGUAGE_FORMATS, LANGUAGES } from './languages';
+import { type LocalizeResponse, TranslateApiService } from './translate-api.service';
 
 @Component({
 	selector: 'app-locale-files',
@@ -64,11 +62,12 @@ import { LANGUAGE_FORMATS, LANGUAGES } from './languages';
                 </select>
               </div>
             }
+
             <div class="col-md-2">
               <label class="form-label" for="loc-model">Model</label>
               <select id="loc-model" class="form-select" formControlName="model">
                 <option value="">Default</option>
-                @for (m of models(); track m) {
+                @for (m of caps.availableModels(); track m) {
                   <option [value]="m">{{ m }}</option>
                 }
               </select>
@@ -84,8 +83,7 @@ import { LANGUAGE_FORMATS, LANGUAGES } from './languages';
             <div class="col-md-2 d-flex align-items-end">
               <label class="btn btn-outline-secondary w-100">
                 Upload JSON
-                <input type="file" accept=".json" class="d-none"
-                       (change)="onFileChange($event)">
+                <input type="file" accept=".json" class="d-none" (change)="onFileChange($event)">
               </label>
             </div>
           </div>
@@ -156,10 +154,11 @@ import { LANGUAGE_FORMATS, LANGUAGES } from './languages';
     }
   `,
 })
-export class LocaleFilesComponent implements OnInit {
+export class LocaleFilesComponent {
 	private readonly api = inject(TranslateApiService);
 	private readonly fb = inject(FormBuilder);
 	private readonly destroyRef = inject(DestroyRef);
+	protected readonly caps = inject(CapabilitiesService);
 
 	protected readonly languages = LANGUAGES;
 	protected readonly formats = LANGUAGE_FORMATS;
@@ -167,7 +166,6 @@ export class LocaleFilesComponent implements OnInit {
 	protected readonly error = signal<string | null>(null);
 	protected readonly result = signal<LocalizeResponse | null>(null);
 	protected readonly prettyResult = signal('');
-	protected readonly models = signal<string[]>([]);
 	protected readonly langFormat = signal('bcp47');
 	protected readonly isNative = computed(() => this.langFormat() === 'native');
 
@@ -180,35 +178,28 @@ export class LocaleFilesComponent implements OnInit {
 		language_format: ['bcp47'],
 	});
 
-	ngOnInit(): void {
-		this.api.getCapabilities().subscribe({
-			next: (caps) => this.models.set(caps.availableModels),
-			error: () => { /* service unavailable — select stays at "Default" only */ },
+	private readonly _langFmtSub = this.form.controls.language_format.valueChanges
+		.pipe(takeUntilDestroyed(this.destroyRef))
+		.subscribe((fmt) => {
+			this.langFormat.set(fmt);
+			const src = this.form.controls.source_language;
+			const tgt = this.form.controls.target_language;
+			if (fmt === 'native') {
+				src.setValidators([Validators.required]);
+				tgt.setValidators([Validators.required]);
+			} else {
+				src.clearValidators();
+				tgt.clearValidators();
+			}
+			src.updateValueAndValidity({ emitEvent: false });
+			tgt.updateValueAndValidity({ emitEvent: false });
+			this.form.patchValue(
+				fmt === 'native'
+					? { source_language: '', target_language: '' }
+					: { source_language: 'en', target_language: 'uk' },
+				{ emitEvent: false },
+			);
 		});
-
-		this.form.controls.language_format.valueChanges
-			.pipe(takeUntilDestroyed(this.destroyRef))
-			.subscribe((fmt) => {
-				this.langFormat.set(fmt);
-				const src = this.form.controls.source_language;
-				const tgt = this.form.controls.target_language;
-				if (fmt === 'native') {
-					src.setValidators([Validators.required]);
-					tgt.setValidators([Validators.required]);
-				} else {
-					src.clearValidators();
-					tgt.clearValidators();
-				}
-				src.updateValueAndValidity({ emitEvent: false });
-				tgt.updateValueAndValidity({ emitEvent: false });
-				this.form.patchValue(
-					fmt === 'native'
-						? { source_language: '', target_language: '' }
-						: { source_language: 'en', target_language: 'uk' },
-					{ emitEvent: false },
-				);
-			});
-	}
 
 	onFileChange(event: Event): void {
 		const input = event.target as HTMLInputElement;
@@ -229,14 +220,8 @@ export class LocaleFilesComponent implements OnInit {
 		this.error.set(null);
 		this.result.set(null);
 
-		const {
-			json,
-			source_language,
-			target_language,
-			model,
-			existing_translation,
-			language_format,
-		} = this.form.getRawValue();
+		const { json, source_language, target_language, model, existing_translation, language_format } =
+			this.form.getRawValue();
 
 		this.api
 			.localize({
@@ -251,18 +236,14 @@ export class LocaleFilesComponent implements OnInit {
 				next: (data) => {
 					this.result.set(data);
 					try {
-						this.prettyResult.set(
-							JSON.stringify(JSON.parse(data.json), null, 2),
-						);
+						this.prettyResult.set(JSON.stringify(JSON.parse(data.json), null, 2));
 					} catch {
 						this.prettyResult.set(data.json);
 					}
 					this.loading.set(false);
 				},
 				error: (err) => {
-					this.error.set(
-						err?.error?.error ?? err?.message ?? 'Translation failed',
-					);
+					this.error.set(apiErrorMessage(err, 'Translation failed'));
 					this.loading.set(false);
 				},
 			});

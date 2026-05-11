@@ -85,10 +85,6 @@ export class TranslateApiService {
 		return this.http.get<CapabilitiesResponse>('/api/capabilities');
 	}
 
-	getGrpcUrl(): Observable<{ url: string }> {
-		return this.http.get<{ url: string }>('/api/grpc-url');
-	}
-
 	translate(req: TranslateRequest): Observable<TranslateResponse> {
 		return this.http.post<TranslateResponse>('/api/translate', req);
 	}

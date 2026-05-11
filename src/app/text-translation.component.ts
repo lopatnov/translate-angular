@@ -4,16 +4,14 @@ import {
 	computed,
 	DestroyRef,
 	inject,
-	OnInit,
 	signal,
 } from '@angular/core';
 import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
 import { FormBuilder, ReactiveFormsModule, Validators } from '@angular/forms';
-import {
-	type TranslateResponse,
-	TranslateApiService,
-} from './translate-api.service';
+import { apiErrorMessage } from './api-error.util';
+import { CapabilitiesService } from './capabilities.service';
 import { LANGUAGE_FORMATS, LANGUAGES } from './languages';
+import { type TranslateResponse, TranslateApiService } from './translate-api.service';
 
 @Component({
 	selector: 'app-text-translation',
@@ -69,12 +67,16 @@ import { LANGUAGE_FORMATS, LANGUAGES } from './languages';
               <select id="model-select" class="form-select" formControlName="model"
                       aria-describedby="model-hint">
                 <option value="">Default</option>
-                @for (m of models(); track m) {
+                @for (m of caps.availableModels(); track m) {
                   <option [value]="m">{{ m }}</option>
                 }
               </select>
               <div id="model-hint" class="form-text">
-                @if (models().length === 0) { Loading… } @else { {{ models().length }} available }
+                @if (caps.isLoading()) {
+                  Loading…
+                } @else {
+                  {{ caps.availableModels().length }} available
+                }
               </div>
             </div>
             <div class="col-md-2">
@@ -136,17 +138,17 @@ import { LANGUAGE_FORMATS, LANGUAGES } from './languages';
     }
   `,
 })
-export class TextTranslationComponent implements OnInit {
+export class TextTranslationComponent {
 	private readonly api = inject(TranslateApiService);
 	private readonly fb = inject(FormBuilder);
 	private readonly destroyRef = inject(DestroyRef);
+	protected readonly caps = inject(CapabilitiesService);
 
 	protected readonly languages = LANGUAGES;
 	protected readonly formats = LANGUAGE_FORMATS;
 	protected readonly loading = signal(false);
 	protected readonly error = signal<string | null>(null);
 	protected readonly result = signal<TranslateResponse | null>(null);
-	protected readonly models = signal<string[]>([]);
 	protected readonly langFormat = signal('bcp47');
 	protected readonly isNative = computed(() => this.langFormat() === 'native');
 
@@ -158,32 +160,25 @@ export class TextTranslationComponent implements OnInit {
 		language_format: ['bcp47'],
 	});
 
-	ngOnInit(): void {
-		this.api.getCapabilities().subscribe({
-			next: (caps) => this.models.set(caps.availableModels),
-			error: () => { /* service unavailable — model select stays at "Default" only */ },
+	// Runs immediately after form is initialized — no ngOnInit needed.
+	private readonly _langFmtSub = this.form.controls.language_format.valueChanges
+		.pipe(takeUntilDestroyed(this.destroyRef))
+		.subscribe((fmt) => {
+			this.langFormat.set(fmt);
+			const ctrl = this.form.controls.target_language;
+			if (fmt === 'native') {
+				ctrl.setValidators([Validators.required]);
+			} else {
+				ctrl.clearValidators();
+			}
+			ctrl.updateValueAndValidity({ emitEvent: false });
+			this.form.patchValue(
+				fmt === 'native'
+					? { source_language: '', target_language: '' }
+					: { source_language: 'auto', target_language: 'en' },
+				{ emitEvent: false },
+			);
 		});
-
-		// Sync langFormat signal and reset language fields when switching modes.
-		this.form.controls.language_format.valueChanges
-			.pipe(takeUntilDestroyed(this.destroyRef))
-			.subscribe((fmt) => {
-				this.langFormat.set(fmt);
-				const ctrl = this.form.controls.target_language;
-				if (fmt === 'native') {
-					ctrl.setValidators([Validators.required]);
-				} else {
-					ctrl.clearValidators();
-				}
-				ctrl.updateValueAndValidity({ emitEvent: false });
-				this.form.patchValue(
-					fmt === 'native'
-						? { source_language: '', target_language: '' }
-						: { source_language: 'auto', target_language: 'en' },
-					{ emitEvent: false },
-				);
-			});
-	}
 
 	submit(): void {
 		if (this.form.invalid) return;
@@ -195,22 +190,14 @@ export class TextTranslationComponent implements OnInit {
 			this.form.getRawValue();
 
 		this.api
-			.translate({
-				text,
-				source_language,
-				target_language,
-				model: model || undefined,
-				language_format,
-			})
+			.translate({ text, source_language, target_language, model: model || undefined, language_format })
 			.subscribe({
 				next: (data) => {
 					this.result.set(data);
 					this.loading.set(false);
 				},
 				error: (err) => {
-					this.error.set(
-						err?.error?.error ?? err?.message ?? 'Translation failed',
-					);
+					this.error.set(apiErrorMessage(err, 'Translation failed'));
 					this.loading.set(false);
 				},
 			});

@@ -1,15 +1,6 @@
-import {
-	ChangeDetectionStrategy,
-	Component,
-	inject,
-	OnInit,
-	signal,
-} from '@angular/core';
+import { ChangeDetectionStrategy, Component, inject } from '@angular/core';
 import { RouterLink } from '@angular/router';
-import {
-	type CapabilitiesResponse,
-	TranslateApiService,
-} from './translate-api.service';
+import { CapabilitiesService } from './capabilities.service';
 
 @Component({
 	selector: 'app-dashboard',
@@ -21,21 +12,23 @@ import {
       <p class="lead text-muted mb-0">Service status and available capabilities.</p>
     </div>
 
-    @if (loading()) {
+    @if (caps.isLoading()) {
       <div class="d-flex align-items-center gap-2 text-muted">
         <div class="spinner-border spinner-border-sm" role="status" aria-label="Loading"></div>
         <span>Connecting to gRPC service…</span>
       </div>
     }
 
-    @if (error()) {
+    @if (caps.error()) {
       <div class="alert alert-danger" role="alert">
-        <strong>Cannot reach gRPC service.</strong> {{ error() }}<br>
-        <small class="text-muted">Make sure the service is running on <code>localhost:5100</code> and try refreshing.</small>
+        <strong>Cannot reach gRPC service.</strong> {{ caps.error() }}<br>
+        <small class="text-muted">
+          Make sure the service is running on <code>localhost:5100</code> and try refreshing.
+        </small>
       </div>
     }
 
-    @if (caps()) {
+    @if (!caps.isLoading() && !caps.error()) {
       <div class="row g-4">
         <!-- Status card -->
         <div class="col-md-6">
@@ -47,7 +40,7 @@ import {
               <dl class="row mb-0">
                 <dt class="col-6 fw-normal text-muted">Speech-to-text</dt>
                 <dd class="col-6">
-                  @if (caps()!.sttAvailable) {
+                  @if (caps.sttAvailable()) {
                     <span class="badge bg-success">✓ enabled</span>
                   } @else {
                     <span class="badge bg-secondary">disabled</span>
@@ -56,7 +49,7 @@ import {
 
                 <dt class="col-6 fw-normal text-muted">Text-to-speech</dt>
                 <dd class="col-6">
-                  @if (caps()!.ttsAvailable) {
+                  @if (caps.ttsAvailable()) {
                     <span class="badge bg-success">✓ enabled</span>
                   } @else {
                     <span class="badge bg-secondary">disabled</span>
@@ -74,7 +67,7 @@ import {
               <h3 class="h6 mb-0">Available translation models</h3>
             </div>
             <div class="card-body d-flex flex-wrap gap-2 align-items-start">
-              @for (model of caps()!.availableModels; track model) {
+              @for (model of caps.availableModels(); track model) {
                 <span class="badge bg-warning text-dark fs-6">{{ model }}</span>
               } @empty {
                 <span class="text-muted small">No models configured</span>
@@ -93,7 +86,7 @@ import {
               <a routerLink="/translate" class="btn btn-outline-secondary">Text translation</a>
               <a routerLink="/detect" class="btn btn-outline-secondary">Language detection</a>
               <a routerLink="/localize" class="btn btn-outline-secondary">Localization files</a>
-              @if (caps()!.sttAvailable) {
+              @if (caps.sttAvailable()) {
                 <a routerLink="/transcribe" class="btn btn-outline-secondary">Speech to text</a>
               }
             </div>
@@ -103,23 +96,6 @@ import {
     }
   `,
 })
-export class DashboardComponent implements OnInit {
-	private readonly api = inject(TranslateApiService);
-
-	protected readonly loading = signal(true);
-	protected readonly error = signal<string | null>(null);
-	protected readonly caps = signal<CapabilitiesResponse | null>(null);
-
-	ngOnInit(): void {
-		this.api.getCapabilities().subscribe({
-			next: (data) => {
-				this.caps.set(data);
-				this.loading.set(false);
-			},
-			error: (err) => {
-				this.error.set(err?.error?.error ?? err?.message ?? 'Unknown error');
-				this.loading.set(false);
-			},
-		});
-	}
+export class DashboardComponent {
+	protected readonly caps = inject(CapabilitiesService);
 }
