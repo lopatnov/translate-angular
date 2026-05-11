@@ -281,6 +281,79 @@ section[class*="widget"] {
 }
 
 /* =========================================================
+   SHARED COMPONENT STYLES
+   Defined globally so Angular's Emulated encapsulation
+   doesn't prevent them from reaching feature components.
+========================================================= */
+
+.page-title {
+  font-size: clamp(2rem, 2.5vw, 2.75rem);
+  color: #f8f1de;
+}
+
+.section-card {
+  background: rgba(255, 255, 255, 0.04);
+  border: 1px solid rgba(255, 255, 255, 0.1);
+}
+
+.card-header {
+  background: rgba(255, 255, 255, 0.03);
+  border-bottom: 1px solid rgba(255, 255, 255, 0.08);
+}
+
+.transcript-preview {
+  background: transparent;
+  border: 0;
+  color: $body-color;
+  white-space: pre-wrap;
+  margin: 0;
+}
+
+.border-white-10 {
+  border-color: rgba(255, 255, 255, 0.1) !important;
+}
+
+/* =========================================================
+   GLOBAL FORM & BUTTON OVERRIDES
+========================================================= */
+
+.form-control,
+.form-select {
+  background: #0f0d0a;
+  border-color: rgba(255, 255, 255, 0.12);
+  color: $body-color;
+  transition: $transition-base;
+}
+
+.form-control::placeholder {
+  color: rgba(232, 220, 199, 0.5);
+}
+
+.form-control:focus,
+.form-select:focus {
+  border-color: $primary;
+  box-shadow: 0 0 0 0.25rem rgba($primary, 0.15);
+  background: rgba(15, 13, 10, 0.8);
+  color: $body-color;
+}
+
+.form-label {
+  color: #f8f1de;
+  font-weight: 500;
+}
+
+.btn-primary {
+  background-color: $primary;
+  border-color: $primary;
+
+  &:hover,
+  &:focus {
+    background-color: #d4b358;
+    border-color: #d4b358;
+  }
+}
+
+/* =========================================================
    SEARCH BOX (Bootstrap panel frame)
 ========================================================= */
 
