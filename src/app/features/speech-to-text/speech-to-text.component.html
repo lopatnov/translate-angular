@@ -25,12 +25,9 @@
                    placeholder="e.g. Ukrainian">
             <div class="invalid-feedback">Language is required in Native mode</div>
           } @else {
-            <select id="stt-lang" class="form-select" formControlName="language">
-              <option value="auto">Auto-detect</option>
-              @for (lang of languages; track lang.code) {
-                <option [value]="lang.code">{{ lang.name }}</option>
-              }
-            </select>
+            <app-language-select inputId="stt-lang"
+              [control]="form.controls.language"
+              [includeAuto]="true" />
           }
         </div>
 

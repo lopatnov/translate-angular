@@ -1,0 +1,18 @@
+<input
+  type="search"
+  [id]="inputId()"
+  class="form-control"
+  [formControl]="control()"
+  [attr.list]="inputId() + '-list'"
+  autocomplete="off"
+  spellcheck="false"
+  placeholder="Type code or name…">
+
+<datalist [id]="inputId() + '-list'">
+  @if (includeAuto()) {
+    <option value="auto">Auto-detect</option>
+  }
+  @for (lang of languages; track lang.code) {
+    <option [value]="lang.code">{{ lang.name }}</option>
+  }
+</datalist>

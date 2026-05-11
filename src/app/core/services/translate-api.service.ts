@@ -11,7 +11,7 @@ import type {
 	TranscribeResponse,
 	TranslateRequest,
 	TranslateResponse,
-} from '../../../shared/api.types';
+} from '@shared/api.types';
 
 @Injectable({ providedIn: 'root' })
 export class TranslateApiService {
@@ -37,7 +37,11 @@ export class TranslateApiService {
 	 * Read a WAV File, encode it as base64, and POST to /api/transcribe.
 	 * Returns an Observable — no need to await the caller.
 	 */
-	transcribe(file: File, language = 'auto', languageFormat = 'bcp47'): Observable<TranscribeResponse> {
+	transcribe(
+		file: File,
+		language = 'auto',
+		languageFormat = 'bcp47',
+	): Observable<TranscribeResponse> {
 		return from(file.arrayBuffer()).pipe(
 			map((buffer) => {
 				const bytes = new Uint8Array(buffer);
@@ -46,7 +50,11 @@ export class TranslateApiService {
 				return btoa(binary);
 			}),
 			switchMap((audio_data_base64) => {
-				const req: TranscribeRequest = { audio_data_base64, language, language_format: languageFormat };
+				const req: TranscribeRequest = {
+					audio_data_base64,
+					language,
+					language_format: languageFormat,
+				};
 				return this.http.post<TranscribeResponse>('/api/transcribe', req);
 			}),
 		);

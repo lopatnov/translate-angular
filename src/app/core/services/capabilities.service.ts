@@ -1,8 +1,6 @@
-import { computed, Injectable, inject } from '@angular/core';
-import { toSignal } from '@angular/core/rxjs-interop';
-import { catchError, map, type Observable, of } from 'rxjs';
-import { apiErrorMessage } from '../utils/api-error.util';
-import { TranslateApiService } from './translate-api.service';
+import { Injectable, computed, inject, signal } from '@angular/core';
+import { apiErrorMessage } from '@core/utils/api-error.util';
+import { TranslateApiService } from '@core/services/translate-api.service';
 
 interface CapsState {
 	readonly loaded: boolean;
@@ -23,17 +21,35 @@ const LOADING: CapsState = {
 };
 
 /**
- * Singleton service that fetches GetCapabilities once and exposes the
- * result as computed signals. All components share a single HTTP request.
+ * Singleton service that fetches GetCapabilities and exposes the result
+ * as computed signals. Call refresh() to re-fetch (e.g. after a gRPC error).
  */
 @Injectable({ providedIn: 'root' })
 export class CapabilitiesService {
 	private readonly api = inject(TranslateApiService);
+	private readonly _state = signal<CapsState>(LOADING);
 
-	private readonly state = toSignal(
-		this.api.getCapabilities().pipe(
-			map(
-				(caps): CapsState => ({
+	readonly isLoading = computed(() => !this._state().loaded);
+	readonly error = computed(() => this._state().error);
+	readonly availableModels = computed(() => this._state().availableModels);
+	readonly availableVoices = computed(() => this._state().availableVoices);
+	readonly sttAvailable = computed(() => this._state().sttAvailable);
+	readonly ttsAvailable = computed(() => this._state().ttsAvailable);
+
+	constructor() {
+		this.load();
+	}
+
+	/** Re-fetch capabilities — useful when the gRPC service was unavailable on startup. */
+	refresh(): void {
+		this.load();
+	}
+
+	private load(): void {
+		this._state.set(LOADING);
+		this.api.getCapabilities().subscribe({
+			next: (caps) =>
+				this._state.set({
 					loaded: true,
 					availableModels: caps.availableModels,
 					availableVoices: caps.availableVoices,
@@ -41,23 +57,12 @@ export class CapabilitiesService {
 					ttsAvailable: caps.ttsAvailable,
 					error: null,
 				}),
-			),
-			catchError(
-				(err): Observable<CapsState> =>
-					of({
-						...LOADING,
-						loaded: true,
-						error: apiErrorMessage(err, 'Cannot reach gRPC service.'),
-					}),
-			),
-		),
-		{ initialValue: LOADING },
-	);
-
-	readonly isLoading = computed(() => !this.state().loaded);
-	readonly error = computed(() => this.state().error);
-	readonly availableModels = computed(() => this.state().availableModels);
-	readonly availableVoices = computed(() => this.state().availableVoices);
-	readonly sttAvailable = computed(() => this.state().sttAvailable);
-	readonly ttsAvailable = computed(() => this.state().ttsAvailable);
+			error: (err) =>
+				this._state.set({
+					...LOADING,
+					loaded: true,
+					error: apiErrorMessage(err, 'Cannot reach gRPC service.'),
+				}),
+		});
+	}
 }

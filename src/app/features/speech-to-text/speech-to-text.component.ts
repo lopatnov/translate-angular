@@ -6,15 +6,16 @@ import {
 	signal,
 } from '@angular/core';
 import { FormBuilder, ReactiveFormsModule, Validators } from '@angular/forms';
-import type { TranscribeResponse } from '../../../shared/api.types';
-import { TranslateApiService } from '../../core/services/translate-api.service';
-import { apiErrorMessage } from '../../core/utils/api-error.util';
-import { useLangFormat } from '../../core/utils/lang-format.util';
-import { LANGUAGE_FORMATS, LANGUAGES } from '../../core/utils/languages';
+import type { TranscribeResponse } from '@shared/api.types';
+import { TranslateApiService } from '@core/services/translate-api.service';
+import { apiErrorMessage } from '@core/utils/api-error.util';
+import { useLangFormat } from '@core/utils/lang-format.util';
+import { LANGUAGE_FORMATS, LANGUAGES } from '@core/utils/languages';
+import { LanguageSelectComponent } from '@app/shared/components/language-select/language-select.component';
 
 @Component({
 	selector: 'app-speech-to-text',
-	imports: [ReactiveFormsModule],
+	imports: [ReactiveFormsModule, LanguageSelectComponent],
 	templateUrl: './speech-to-text.component.html',
 	styleUrl: './speech-to-text.component.scss',
 	changeDetection: ChangeDetectionStrategy.OnPush,

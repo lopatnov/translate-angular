@@ -1,9 +1,10 @@
 import { Router } from 'express';
 import type {
+	DetectRequest,
 	LocalizeRequest,
 	TranscribeRequest,
 	TranslateRequest,
-} from '../shared/api.types';
+} from '@shared/api.types';
 import {
 	detectLanguage,
 	getCapabilities,
@@ -58,7 +59,7 @@ export function createApiRouter(): Router {
 
 	router.post('/detect', async (req, res) => {
 		try {
-			const { text, language_format } = req.body as { text: string; language_format?: string };
+			const { text, language_format } = req.body as DetectRequest;
 			res.json(
 				await detectLanguage({ text, languageFormat: language_format ?? 'bcp47' }),
 			);

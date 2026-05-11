@@ -6,16 +6,17 @@ import {
 	signal,
 } from '@angular/core';
 import { FormBuilder, ReactiveFormsModule, Validators } from '@angular/forms';
-import type { LocalizeResponse } from '../../../shared/api.types';
-import { CapabilitiesService } from '../../core/services/capabilities.service';
-import { TranslateApiService } from '../../core/services/translate-api.service';
-import { apiErrorMessage } from '../../core/utils/api-error.util';
-import { useLangFormat } from '../../core/utils/lang-format.util';
-import { LANGUAGE_FORMATS, LANGUAGES } from '../../core/utils/languages';
+import type { LocalizeResponse } from '@shared/api.types';
+import { CapabilitiesService } from '@core/services/capabilities.service';
+import { TranslateApiService } from '@core/services/translate-api.service';
+import { apiErrorMessage } from '@core/utils/api-error.util';
+import { useLangFormat } from '@core/utils/lang-format.util';
+import { LANGUAGE_FORMATS, LANGUAGES } from '@core/utils/languages';
+import { LanguageSelectComponent } from '@app/shared/components/language-select/language-select.component';
 
 @Component({
 	selector: 'app-locale-files',
-	imports: [ReactiveFormsModule],
+	imports: [ReactiveFormsModule, LanguageSelectComponent],
 	templateUrl: './locale-files.component.html',
 	styleUrl: './locale-files.component.scss',
 	changeDetection: ChangeDetectionStrategy.OnPush,

@@ -25,20 +25,14 @@
         } @else {
           <div class="col-md-4">
             <label class="form-label" for="src-lang">Source language</label>
-            <select id="src-lang" class="form-select" formControlName="source_language">
-              <option value="auto">Auto-detect</option>
-              @for (lang of languages; track lang.code) {
-                <option [value]="lang.code">{{ lang.name }}</option>
-              }
-            </select>
+            <app-language-select inputId="src-lang"
+              [control]="form.controls.source_language"
+              [includeAuto]="true" />
           </div>
           <div class="col-md-4">
             <label class="form-label" for="tgt-lang">Target language</label>
-            <select id="tgt-lang" class="form-select" formControlName="target_language">
-              @for (lang of languages; track lang.code) {
-                <option [value]="lang.code">{{ lang.name }}</option>
-              }
-            </select>
+            <app-language-select inputId="tgt-lang"
+              [control]="form.controls.target_language" />
           </div>
         }
 

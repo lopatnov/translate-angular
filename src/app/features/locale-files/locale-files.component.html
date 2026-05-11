@@ -27,19 +27,13 @@
         } @else {
           <div class="col-md-3">
             <label class="form-label" for="loc-src">Source language</label>
-            <select id="loc-src" class="form-select" formControlName="source_language">
-              @for (lang of languages; track lang.code) {
-                <option [value]="lang.code">{{ lang.name }}</option>
-              }
-            </select>
+            <app-language-select inputId="loc-src"
+              [control]="form.controls.source_language" />
           </div>
           <div class="col-md-3">
             <label class="form-label" for="loc-tgt">Target language</label>
-            <select id="loc-tgt" class="form-select" formControlName="target_language">
-              @for (lang of languages; track lang.code) {
-                <option [value]="lang.code">{{ lang.name }}</option>
-              }
-            </select>
+            <app-language-select inputId="loc-tgt"
+              [control]="form.controls.target_language" />
           </div>
         }
 
