@@ -35,12 +35,16 @@ import { LANGUAGE_FORMATS, LANGUAGES } from './languages';
               <div class="col-md-3">
                 <label class="form-label" for="loc-src-native">Source language</label>
                 <input id="loc-src-native" class="form-control" formControlName="source_language"
+                       [class.is-invalid]="form.controls.source_language.invalid && form.controls.source_language.touched"
                        placeholder="e.g. English">
+                <div class="invalid-feedback">Source language is required</div>
               </div>
               <div class="col-md-3">
                 <label class="form-label" for="loc-tgt-native">Target language</label>
                 <input id="loc-tgt-native" class="form-control" formControlName="target_language"
+                       [class.is-invalid]="form.controls.target_language.invalid && form.controls.target_language.touched"
                        placeholder="e.g. Українська">
+                <div class="invalid-feedback">Target language is required</div>
               </div>
             } @else {
               <div class="col-md-3">
@@ -186,6 +190,17 @@ export class LocaleFilesComponent implements OnInit {
 			.pipe(takeUntilDestroyed(this.destroyRef))
 			.subscribe((fmt) => {
 				this.langFormat.set(fmt);
+				const src = this.form.controls.source_language;
+				const tgt = this.form.controls.target_language;
+				if (fmt === 'native') {
+					src.setValidators([Validators.required]);
+					tgt.setValidators([Validators.required]);
+				} else {
+					src.clearValidators();
+					tgt.clearValidators();
+				}
+				src.updateValueAndValidity({ emitEvent: false });
+				tgt.updateValueAndValidity({ emitEvent: false });
 				this.form.patchValue(
 					fmt === 'native'
 						? { source_language: '', target_language: '' }

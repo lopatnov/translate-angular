@@ -1,13 +1,16 @@
 import {
 	ChangeDetectionStrategy,
 	Component,
+	computed,
+	DestroyRef,
 	inject,
+	OnInit,
 	signal,
 } from '@angular/core';
-import { FormBuilder, ReactiveFormsModule } from '@angular/forms';
+import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
+import { FormBuilder, ReactiveFormsModule, Validators } from '@angular/forms';
 import {
 	type TranscribeResponse,
-	type TranscriptionSegment,
 	TranslateApiService,
 } from './translate-api.service';
 import { LANGUAGE_FORMATS, LANGUAGES } from './languages';
@@ -35,15 +38,24 @@ import { LANGUAGE_FORMATS, LANGUAGES } from './languages';
                      aria-describedby="audio-hint">
               <div id="audio-hint" class="form-text">Only WAV format is supported.</div>
             </div>
+
             <div class="col-md-4">
               <label class="form-label" for="stt-lang">Language hint</label>
-              <select id="stt-lang" class="form-select" formControlName="language">
-                <option value="auto">Auto-detect</option>
-                @for (lang of languages; track lang.code) {
-                  <option [value]="lang.code">{{ lang.name }}</option>
-                }
-              </select>
+              @if (isNative()) {
+                <input id="stt-lang" class="form-control" formControlName="language"
+                       [class.is-invalid]="form.controls.language.invalid && form.controls.language.touched"
+                       placeholder="e.g. Ukrainian">
+                <div class="invalid-feedback">Language is required in Native mode</div>
+              } @else {
+                <select id="stt-lang" class="form-select" formControlName="language">
+                  <option value="auto">Auto-detect</option>
+                  @for (lang of languages; track lang.code) {
+                    <option [value]="lang.code">{{ lang.name }}</option>
+                  }
+                </select>
+              }
             </div>
+
             <div class="col-md-3">
               <label class="form-label" for="stt-fmt">Language format</label>
               <select id="stt-fmt" class="form-select" formControlName="language_format">
@@ -56,7 +68,7 @@ import { LANGUAGE_FORMATS, LANGUAGES } from './languages';
 
           <div class="d-flex gap-2">
             <button type="submit" class="btn btn-primary"
-                    [disabled]="!selectedFile() || loading()">
+                    [disabled]="!selectedFile() || form.invalid || loading()">
               @if (loading()) {
                 <span class="spinner-border spinner-border-sm me-2" role="status" aria-hidden="true"></span>
                 Transcribing…
@@ -130,9 +142,10 @@ import { LANGUAGE_FORMATS, LANGUAGES } from './languages';
     }
   `,
 })
-export class SpeechToTextComponent {
+export class SpeechToTextComponent implements OnInit {
 	private readonly api = inject(TranslateApiService);
 	private readonly fb = inject(FormBuilder);
+	private readonly destroyRef = inject(DestroyRef);
 
 	protected readonly languages = LANGUAGES;
 	protected readonly formats = LANGUAGE_FORMATS;
@@ -140,11 +153,32 @@ export class SpeechToTextComponent {
 	protected readonly error = signal<string | null>(null);
 	protected readonly result = signal<TranscribeResponse | null>(null);
 	protected readonly selectedFile = signal<File | null>(null);
+	protected readonly langFormat = signal('bcp47');
+	protected readonly isNative = computed(() => this.langFormat() === 'native');
 
 	protected readonly form = this.fb.nonNullable.group({
 		language: ['auto'],
 		language_format: ['bcp47'],
 	});
+
+	ngOnInit(): void {
+		this.form.controls.language_format.valueChanges
+			.pipe(takeUntilDestroyed(this.destroyRef))
+			.subscribe((fmt) => {
+				this.langFormat.set(fmt);
+				const ctrl = this.form.controls.language;
+				if (fmt === 'native') {
+					ctrl.setValidators([Validators.required]);
+				} else {
+					ctrl.clearValidators();
+				}
+				ctrl.updateValueAndValidity({ emitEvent: false });
+				this.form.patchValue(
+					{ language: fmt === 'native' ? '' : 'auto' },
+					{ emitEvent: false },
+				);
+			});
+	}
 
 	onFileChange(event: Event): void {
 		const input = event.target as HTMLInputElement;
@@ -185,7 +219,11 @@ export class SpeechToTextComponent {
 
 	clear(): void {
 		this.selectedFile.set(null);
-		this.form.reset({ language: 'auto', language_format: 'bcp47' });
+		const fmt = this.form.controls.language_format.value;
+		this.form.reset({
+			language: fmt === 'native' ? '' : 'auto',
+			language_format: fmt,
+		});
 		this.result.set(null);
 		this.error.set(null);
 	}

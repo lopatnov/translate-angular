@@ -35,11 +35,14 @@ import { LANGUAGE_FORMATS, LANGUAGES } from './languages';
                 <label class="form-label" for="src-lang-native">Source language</label>
                 <input id="src-lang-native" class="form-control" formControlName="source_language"
                        placeholder="e.g. Українська (empty = auto-detect)">
+                <div class="form-text">Empty = auto-detect</div>
               </div>
               <div class="col-md-4">
                 <label class="form-label" for="tgt-lang-native">Target language</label>
                 <input id="tgt-lang-native" class="form-control" formControlName="target_language"
+                       [class.is-invalid]="form.controls.target_language.invalid && form.controls.target_language.touched"
                        placeholder="e.g. English">
+                <div class="invalid-feedback">Target language is required</div>
               </div>
             } @else {
               <div class="col-md-4">
@@ -166,6 +169,13 @@ export class TextTranslationComponent implements OnInit {
 			.pipe(takeUntilDestroyed(this.destroyRef))
 			.subscribe((fmt) => {
 				this.langFormat.set(fmt);
+				const ctrl = this.form.controls.target_language;
+				if (fmt === 'native') {
+					ctrl.setValidators([Validators.required]);
+				} else {
+					ctrl.clearValidators();
+				}
+				ctrl.updateValueAndValidity({ emitEvent: false });
 				this.form.patchValue(
 					fmt === 'native'
 						? { source_language: '', target_language: '' }
