@@ -1,10 +1,13 @@
 import {
 	ChangeDetectionStrategy,
 	Component,
+	computed,
+	DestroyRef,
 	inject,
 	OnInit,
 	signal,
 } from '@angular/core';
+import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
 import { FormBuilder, ReactiveFormsModule, Validators } from '@angular/forms';
 import {
 	type LocalizeResponse,
@@ -28,22 +31,35 @@ import { LANGUAGE_FORMATS, LANGUAGES } from './languages';
       <div class="card-body">
         <form [formGroup]="form" (ngSubmit)="submit()">
           <div class="row g-3 mb-3">
-            <div class="col-md-3">
-              <label class="form-label" for="loc-src">Source language</label>
-              <select id="loc-src" class="form-select" formControlName="source_language">
-                @for (lang of languages; track lang.code) {
-                  <option [value]="lang.code">{{ lang.name }}</option>
-                }
-              </select>
-            </div>
-            <div class="col-md-3">
-              <label class="form-label" for="loc-tgt">Target language</label>
-              <select id="loc-tgt" class="form-select" formControlName="target_language">
-                @for (lang of languages; track lang.code) {
-                  <option [value]="lang.code">{{ lang.name }}</option>
-                }
-              </select>
-            </div>
+            @if (isNative()) {
+              <div class="col-md-3">
+                <label class="form-label" for="loc-src-native">Source language</label>
+                <input id="loc-src-native" class="form-control" formControlName="source_language"
+                       placeholder="e.g. English">
+              </div>
+              <div class="col-md-3">
+                <label class="form-label" for="loc-tgt-native">Target language</label>
+                <input id="loc-tgt-native" class="form-control" formControlName="target_language"
+                       placeholder="e.g. Українська">
+              </div>
+            } @else {
+              <div class="col-md-3">
+                <label class="form-label" for="loc-src">Source language</label>
+                <select id="loc-src" class="form-select" formControlName="source_language">
+                  @for (lang of languages; track lang.code) {
+                    <option [value]="lang.code">{{ lang.name }}</option>
+                  }
+                </select>
+              </div>
+              <div class="col-md-3">
+                <label class="form-label" for="loc-tgt">Target language</label>
+                <select id="loc-tgt" class="form-select" formControlName="target_language">
+                  @for (lang of languages; track lang.code) {
+                    <option [value]="lang.code">{{ lang.name }}</option>
+                  }
+                </select>
+              </div>
+            }
             <div class="col-md-2">
               <label class="form-label" for="loc-model">Model</label>
               <select id="loc-model" class="form-select" formControlName="model">
@@ -139,6 +155,7 @@ import { LANGUAGE_FORMATS, LANGUAGES } from './languages';
 export class LocaleFilesComponent implements OnInit {
 	private readonly api = inject(TranslateApiService);
 	private readonly fb = inject(FormBuilder);
+	private readonly destroyRef = inject(DestroyRef);
 
 	protected readonly languages = LANGUAGES;
 	protected readonly formats = LANGUAGE_FORMATS;
@@ -147,6 +164,8 @@ export class LocaleFilesComponent implements OnInit {
 	protected readonly result = signal<LocalizeResponse | null>(null);
 	protected readonly prettyResult = signal('');
 	protected readonly models = signal<string[]>([]);
+	protected readonly langFormat = signal('bcp47');
+	protected readonly isNative = computed(() => this.langFormat() === 'native');
 
 	protected readonly form = this.fb.nonNullable.group({
 		json: ['', Validators.required],
@@ -162,6 +181,18 @@ export class LocaleFilesComponent implements OnInit {
 			next: (caps) => this.models.set(caps.availableModels),
 			error: () => { /* service unavailable — select stays at "Default" only */ },
 		});
+
+		this.form.controls.language_format.valueChanges
+			.pipe(takeUntilDestroyed(this.destroyRef))
+			.subscribe((fmt) => {
+				this.langFormat.set(fmt);
+				this.form.patchValue(
+					fmt === 'native'
+						? { source_language: '', target_language: '' }
+						: { source_language: 'en', target_language: 'uk' },
+					{ emitEvent: false },
+				);
+			});
 	}
 
 	onFileChange(event: Event): void {
@@ -223,10 +254,11 @@ export class LocaleFilesComponent implements OnInit {
 	}
 
 	clear(): void {
+		const fmt = this.form.controls.language_format.value;
 		this.form.reset({
-			source_language: 'en',
-			target_language: 'uk',
-			language_format: 'bcp47',
+			source_language: fmt === 'native' ? '' : 'en',
+			target_language: fmt === 'native' ? '' : 'uk',
+			language_format: fmt,
 		});
 		this.result.set(null);
 		this.error.set(null);

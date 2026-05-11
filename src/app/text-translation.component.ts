@@ -1,10 +1,13 @@
 import {
 	ChangeDetectionStrategy,
 	Component,
+	computed,
+	DestroyRef,
 	inject,
 	OnInit,
 	signal,
 } from '@angular/core';
+import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
 import { FormBuilder, ReactiveFormsModule, Validators } from '@angular/forms';
 import {
 	type TranslateResponse,
@@ -26,23 +29,38 @@ import { LANGUAGE_FORMATS, LANGUAGES } from './languages';
       <div class="card-body">
         <form [formGroup]="form" (ngSubmit)="submit()">
           <div class="row g-3 mb-3">
-            <div class="col-md-4">
-              <label class="form-label" for="src-lang">Source language</label>
-              <select id="src-lang" class="form-select" formControlName="source_language">
-                <option value="auto">Auto-detect</option>
-                @for (lang of languages; track lang.code) {
-                  <option [value]="lang.code">{{ lang.name }}</option>
-                }
-              </select>
-            </div>
-            <div class="col-md-4">
-              <label class="form-label" for="tgt-lang">Target language</label>
-              <select id="tgt-lang" class="form-select" formControlName="target_language">
-                @for (lang of languages; track lang.code) {
-                  <option [value]="lang.code">{{ lang.name }}</option>
-                }
-              </select>
-            </div>
+
+            @if (isNative()) {
+              <div class="col-md-4">
+                <label class="form-label" for="src-lang-native">Source language</label>
+                <input id="src-lang-native" class="form-control" formControlName="source_language"
+                       placeholder="e.g. Українська (empty = auto-detect)">
+              </div>
+              <div class="col-md-4">
+                <label class="form-label" for="tgt-lang-native">Target language</label>
+                <input id="tgt-lang-native" class="form-control" formControlName="target_language"
+                       placeholder="e.g. English">
+              </div>
+            } @else {
+              <div class="col-md-4">
+                <label class="form-label" for="src-lang">Source language</label>
+                <select id="src-lang" class="form-select" formControlName="source_language">
+                  <option value="auto">Auto-detect</option>
+                  @for (lang of languages; track lang.code) {
+                    <option [value]="lang.code">{{ lang.name }}</option>
+                  }
+                </select>
+              </div>
+              <div class="col-md-4">
+                <label class="form-label" for="tgt-lang">Target language</label>
+                <select id="tgt-lang" class="form-select" formControlName="target_language">
+                  @for (lang of languages; track lang.code) {
+                    <option [value]="lang.code">{{ lang.name }}</option>
+                  }
+                </select>
+              </div>
+            }
+
             <div class="col-md-2">
               <label class="form-label" for="model-select">Model</label>
               <select id="model-select" class="form-select" formControlName="model"
@@ -118,6 +136,7 @@ import { LANGUAGE_FORMATS, LANGUAGES } from './languages';
 export class TextTranslationComponent implements OnInit {
 	private readonly api = inject(TranslateApiService);
 	private readonly fb = inject(FormBuilder);
+	private readonly destroyRef = inject(DestroyRef);
 
 	protected readonly languages = LANGUAGES;
 	protected readonly formats = LANGUAGE_FORMATS;
@@ -125,6 +144,8 @@ export class TextTranslationComponent implements OnInit {
 	protected readonly error = signal<string | null>(null);
 	protected readonly result = signal<TranslateResponse | null>(null);
 	protected readonly models = signal<string[]>([]);
+	protected readonly langFormat = signal('bcp47');
+	protected readonly isNative = computed(() => this.langFormat() === 'native');
 
 	protected readonly form = this.fb.nonNullable.group({
 		text: ['', Validators.required],
@@ -135,11 +156,23 @@ export class TextTranslationComponent implements OnInit {
 	});
 
 	ngOnInit(): void {
-		this.form.patchValue({ source_language: 'auto', target_language: 'en' });
 		this.api.getCapabilities().subscribe({
 			next: (caps) => this.models.set(caps.availableModels),
-			error: () => { /* service unavailable — select stays at "Default" only */ },
+			error: () => { /* service unavailable — model select stays at "Default" only */ },
 		});
+
+		// Sync langFormat signal and reset language fields when switching modes.
+		this.form.controls.language_format.valueChanges
+			.pipe(takeUntilDestroyed(this.destroyRef))
+			.subscribe((fmt) => {
+				this.langFormat.set(fmt);
+				this.form.patchValue(
+					fmt === 'native'
+						? { source_language: '', target_language: '' }
+						: { source_language: 'auto', target_language: 'en' },
+					{ emitEvent: false },
+				);
+			});
 	}
 
 	submit(): void {
@@ -175,9 +208,9 @@ export class TextTranslationComponent implements OnInit {
 
 	clear(): void {
 		this.form.reset({
-			source_language: 'auto',
-			target_language: 'en',
-			language_format: 'bcp47',
+			source_language: this.isNative() ? '' : 'auto',
+			target_language: this.isNative() ? '' : 'en',
+			language_format: this.form.controls.language_format.value,
 		});
 		this.result.set(null);
 		this.error.set(null);
