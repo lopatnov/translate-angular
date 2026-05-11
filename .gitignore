@@ -4,7 +4,7 @@
 /dist
 
 # buf generate output — regenerate with `npm run generate`
-/src/generated
+/src/server/generated
 /tmp
 /out-tsc
 /bazel-out

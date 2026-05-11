@@ -11,8 +11,8 @@ import type {
 	TranslateLocalizationResponse,
 	TranslateTextRequest,
 	TranslateTextResponse,
-} from '../generated/translate';
-import { TranslateServiceClient } from '../generated/translate';
+} from './generated/translate';
+import { TranslateServiceClient } from './generated/translate';
 
 // Both this file and the generated translate.ts import @grpc/grpc-js via ESM.
 // Using a plain ESM import (not createRequire) ensures a single module instance
