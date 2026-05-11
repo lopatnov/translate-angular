@@ -13,7 +13,7 @@ import {
 	transcribeAudio,
 	translateLocalization,
 	translateText,
-} from './grpc-client';
+} from './server/grpc-client';
 
 const browserDistFolder = join(import.meta.dirname, '../browser');
 
