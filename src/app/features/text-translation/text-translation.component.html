@@ -1,56 +1,87 @@
 <app-page-header
   title="Text translation"
-  subtitle="Translate text between any two supported languages." />
+  subtitle="Translate text between any two supported languages."
+/>
 
 <div class="card section-card mb-4">
   <div class="card-body">
     <form [formGroup]="form" (ngSubmit)="submit()">
       <div class="row g-3 mb-3">
-
         @if (isNative()) {
           <div class="col-md-4">
-            <label class="form-label" for="src-lang-native">Source language</label>
-            <input id="src-lang-native" class="form-control" formControlName="source_language"
-                   placeholder="e.g. Українська (empty = auto-detect)">
+            <label class="form-label" for="src-lang-native"
+              >Source language</label
+            >
+            <input
+              id="src-lang-native"
+              class="form-control"
+              formControlName="source_language"
+              placeholder="e.g. ukr_Cyrl (empty = auto-detect)"
+            />
             <div class="form-text">Empty = auto-detect</div>
           </div>
           <div class="col-md-4">
-            <label class="form-label" for="tgt-lang-native">Target language</label>
-            <input id="tgt-lang-native" class="form-control" formControlName="target_language"
-                   [class.is-invalid]="form.controls.target_language.invalid && form.controls.target_language.touched"
-                   placeholder="e.g. English">
+            <label class="form-label" for="tgt-lang-native"
+              >Target language</label
+            >
+            <input
+              id="tgt-lang-native"
+              class="form-control"
+              formControlName="target_language"
+              [class.is-invalid]="
+                form.controls.target_language.invalid &&
+                form.controls.target_language.touched
+              "
+              placeholder="e.g. eng_Latn"
+            />
             <div class="invalid-feedback">Target language is required</div>
           </div>
         } @else {
           <div class="col-md-4">
             <label class="form-label" for="src-lang">Source language</label>
-            <app-language-select inputId="src-lang"
+            <app-language-select
+              inputId="src-lang"
               [control]="form.controls.source_language"
-              [includeAuto]="true" />
+              [includeAuto]="true"
+            />
           </div>
           <div class="col-md-4">
             <label class="form-label" for="tgt-lang">Target language</label>
-            <app-language-select inputId="tgt-lang"
-              [control]="form.controls.target_language" />
+            <app-language-select
+              inputId="tgt-lang"
+              [control]="form.controls.target_language"
+            />
           </div>
         }
 
         <div class="col-md-2">
           <label class="form-label" for="model-select">Model</label>
-          <select id="model-select" class="form-select" formControlName="model"
-                  aria-describedby="model-hint">
+          <select
+            id="model-select"
+            class="form-select"
+            formControlName="model"
+            aria-describedby="model-hint"
+          >
             <option value="">Default</option>
             @for (m of caps.availableModels(); track m) {
               <option [value]="m">{{ m }}</option>
             }
           </select>
           <div id="model-hint" class="form-text">
-            @if (caps.isLoading()) { Loading… } @else { {{ caps.availableModels().length }} available }
+            @if (caps.isLoading()) {
+              Loading…
+            } @else {
+              {{ caps.availableModels().length }} available
+            }
           </div>
         </div>
         <div class="col-md-2">
           <label class="form-label" for="lang-fmt">Language format</label>
-          <select id="lang-fmt" class="form-select" formControlName="language_format">
+          <select
+            id="lang-fmt"
+            class="form-select"
+            formControlName="language_format"
+          >
             @for (f of formats; track f.value) {
               <option [value]="f.value">{{ f.label }}</option>
             }
@@ -60,9 +91,13 @@
 
       <div class="mb-3">
         <label class="form-label" for="text-input">Source text</label>
-        <textarea id="text-input" class="form-control" rows="6"
-                  formControlName="text"
-                  placeholder="Enter text to translate…"></textarea>
+        <textarea
+          id="text-input"
+          class="form-control"
+          rows="6"
+          formControlName="text"
+          placeholder="Enter text to translate…"
+        ></textarea>
       </div>
 
       <div class="d-flex gap-2">
@@ -70,8 +105,15 @@
           [disabled]="form.invalid"
           [loading]="loading()"
           label="Translate"
-          loadingLabel="Translating…" />
-        <button type="button" class="btn btn-outline-secondary" (click)="clear()">Clear</button>
+          loadingLabel="Translating…"
+        />
+        <button
+          type="button"
+          class="btn btn-outline-secondary"
+          (click)="clear()"
+        >
+          Clear
+        </button>
       </div>
     </form>
   </div>
@@ -85,14 +127,19 @@
       <h3 class="h6 mb-0">Result</h3>
       <div class="d-flex gap-2 align-items-center flex-wrap">
         @if (result()!.detectedLanguage) {
-          <span class="badge bg-warning text-dark">Detected: {{ result()!.detectedLanguage }}</span>
+          <span class="badge bg-warning text-dark"
+            >Detected: {{ result()!.detectedLanguage }}</span
+          >
         }
         <span class="badge bg-secondary">{{ result()!.modelUsed }}</span>
       </div>
     </div>
     <div class="card-body">
       <pre class="transcript-preview">{{ result()!.translatedText }}</pre>
-      <app-copy-button [text]="result()!.translatedText" label="Copy to clipboard" />
+      <app-copy-button
+        [text]="result()!.translatedText"
+        label="Copy to clipboard"
+      />
     </div>
   </div>
 }
