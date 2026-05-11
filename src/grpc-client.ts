@@ -1,5 +1,4 @@
-import { createRequire } from 'node:module';
-import type { ChannelCredentials } from '@grpc/grpc-js';
+import { ChannelCredentials } from '@grpc/grpc-js';
 import type {
 	DetectLanguageRequest,
 	DetectLanguageResponse,
@@ -15,12 +14,10 @@ import type {
 } from './generated/translate';
 import { TranslateServiceClient } from './generated/translate';
 
-// CJS packages must be loaded via createRequire — ESM default imports
-// from esbuild (Angular's build tool) do not correctly resolve CJS module.exports.
-const require = createRequire(import.meta.url);
-// biome-ignore lint/suspicious/noExplicitAny: CJS interop — credentials factory only
-const grpc: { credentials: { createInsecure(): ChannelCredentials } } =
-	require('@grpc/grpc-js');
+// Both this file and the generated translate.ts import @grpc/grpc-js via ESM.
+// Using a plain ESM import (not createRequire) ensures a single module instance
+// so that `credentials instanceof ChannelCredentials` inside the generated
+// TranslateServiceClient constructor succeeds.
 
 const GRPC_URL = process.env['TRANSLATE_GRPC_URL'] ?? 'localhost:5100';
 
@@ -30,7 +27,7 @@ function getClient(): ITranslateServiceClient {
 	if (_client) return _client;
 	_client = new TranslateServiceClient(
 		GRPC_URL,
-		grpc.credentials.createInsecure(),
+		ChannelCredentials.createInsecure(),
 	);
 	return _client;
 }
