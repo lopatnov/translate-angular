@@ -3,6 +3,7 @@
 	"version": "2.0.0",
 	"tasks": [
 		{
+			"label": "npm: start",
 			"type": "npm",
 			"script": "start",
 			"isBackground": true,
@@ -21,6 +22,50 @@
 			}
 		},
 		{
+			"label": "ng build (dev)",
+			"type": "shell",
+			"command": "npm",
+			"args": ["run", "build", "--", "--configuration=development"],
+			"group": "build",
+			"presentation": {
+				"echo": true,
+				"reveal": "always",
+				"focus": false,
+				"panel": "dedicated",
+				"showReuseMessage": false,
+				"clear": true
+			},
+			"problemMatcher": []
+		},
+		{
+			"label": "ng build --watch (dev)",
+			"type": "shell",
+			"command": "npm",
+			"args": ["run", "build", "--", "--watch", "--configuration=development"],
+			"isBackground": true,
+			"group": "build",
+			"presentation": {
+				"echo": true,
+				"reveal": "always",
+				"focus": false,
+				"panel": "dedicated"
+			},
+			"problemMatcher": {
+				"owner": "typescript",
+				"pattern": "$tsc",
+				"background": {
+					"activeOnStart": true,
+					"beginsPattern": {
+						"regexp": "Building\\.\\.\\."
+					},
+					"endsPattern": {
+						"regexp": "bundle generation complete"
+					}
+				}
+			}
+		},
+		{
+			"label": "npm: test",
 			"type": "npm",
 			"script": "test",
 			"isBackground": true,

@@ -1,20 +1,78 @@
-import { test, expect } from '@playwright/test';
+import { expect, test } from '@playwright/test';
 
-test('has title', async ({ page }) => {
-	await page.goto('https://playwright.dev/');
+/**
+ * Navigation smoke tests — verifies sidebar links and routing for all 5 pages.
+ */
+test.describe('Navigation', () => {
+	test.beforeEach(async ({ page }) => {
+		await page.goto('/');
+	});
 
-	// Expect a title "to contain" a substring.
-	await expect(page).toHaveTitle(/Playwright/);
-});
+	test('page title is set', async ({ page }) => {
+		await expect(page).toHaveTitle(/TranslateAngular/);
+	});
 
-test('get started link', async ({ page }) => {
-	await page.goto('https://playwright.dev/');
+	test('sidebar brand is visible', async ({ page }) => {
+		await expect(page.getByText('Translate Studio')).toBeVisible();
+	});
 
-	// Click the get started link.
-	await page.getByRole('link', { name: 'Get started' }).click();
+	test('sidebar has Dashboard link', async ({ page }) => {
+		await expect(page.getByRole('link', { name: 'Dashboard' })).toBeVisible();
+	});
 
-	// Expects page to have a heading with the name of Installation.
-	await expect(
-		page.getByRole('heading', { name: 'Installation' }),
-	).toBeVisible();
+	test('sidebar has Text translation link', async ({ page }) => {
+		await expect(
+			page.getByRole('link', { name: 'Text translation' }),
+		).toBeVisible();
+	});
+
+	test('sidebar has Language detection link', async ({ page }) => {
+		await expect(
+			page.getByRole('link', { name: 'Language detection' }),
+		).toBeVisible();
+	});
+
+	test('sidebar has Localization files link', async ({ page }) => {
+		await expect(
+			page.getByRole('link', { name: 'Localization files' }),
+		).toBeVisible();
+	});
+
+	test('sidebar has Speech to text link', async ({ page }) => {
+		await expect(
+			page.getByRole('link', { name: 'Speech to text' }),
+		).toBeVisible();
+	});
+
+	test('navigates to /translate', async ({ page }) => {
+		await page.getByRole('link', { name: 'Text translation' }).click();
+		await expect(page).toHaveURL(/\/translate/);
+		await expect(
+			page.getByRole('heading', { name: 'Text translation' }),
+		).toBeVisible();
+	});
+
+	test('navigates to /detect', async ({ page }) => {
+		await page.getByRole('link', { name: 'Language detection' }).click();
+		await expect(page).toHaveURL(/\/detect/);
+		await expect(
+			page.getByRole('heading', { name: 'Language detection' }),
+		).toBeVisible();
+	});
+
+	test('navigates to /localize', async ({ page }) => {
+		await page.getByRole('link', { name: 'Localization files' }).click();
+		await expect(page).toHaveURL(/\/localize/);
+		await expect(
+			page.getByRole('heading', { name: 'Localization files' }),
+		).toBeVisible();
+	});
+
+	test('navigates to /transcribe', async ({ page }) => {
+		await page.getByRole('link', { name: 'Speech to text' }).click();
+		await expect(page).toHaveURL(/\/transcribe/);
+		await expect(
+			page.getByRole('heading', { name: 'Speech to text' }),
+		).toBeVisible();
+	});
 });

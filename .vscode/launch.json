@@ -3,11 +3,42 @@
 	"version": "0.2.0",
 	"configurations": [
 		{
-			"name": "ng serve",
+			// Open Chrome and attach it to the running ng serve dev server.
+			// Make sure to run `npm run start` (or the "ng build --watch" task) first.
+			"name": "Open browser (ng serve)",
 			"type": "chrome",
 			"request": "launch",
 			"preLaunchTask": "npm: start",
 			"url": "http://localhost:4200/"
+		},
+		{
+			// Builds the project in development mode, then launches server.mjs
+			// with the Node.js debugger attached. Set breakpoints in src/server.ts
+			// or src/grpc-client.ts — source maps are enabled automatically.
+			//
+			// Port 4000 is used so it doesn't conflict with `ng serve` (4200).
+			// Point your browser at http://localhost:4000 after launch.
+			"name": "Debug SSR backend",
+			"type": "node",
+			"request": "launch",
+			"preLaunchTask": "ng build (dev)",
+			"runtimeExecutable": "node",
+			"runtimeArgs": ["--enable-source-maps"],
+			"program": "${workspaceFolder}/dist/translate-angular/server/server.mjs",
+			"env": {
+				"PORT": "4000",
+				"TRANSLATE_GRPC_URL": "localhost:5100"
+			},
+			"outFiles": [
+				"${workspaceFolder}/dist/translate-angular/server/**/*.mjs",
+				"${workspaceFolder}/dist/translate-angular/server/**/*.js"
+			],
+			"sourceMaps": true,
+			"resolveSourceMapLocations": [
+				"${workspaceFolder}/src/**",
+				"!**/node_modules/**"
+			],
+			"skipFiles": ["<node_internals>/**", "**/node_modules/**"]
 		},
 		{
 			"name": "ng test",
@@ -15,6 +46,15 @@
 			"request": "launch",
 			"preLaunchTask": "npm: test",
 			"url": "http://localhost:9876/debug.html"
+		}
+	],
+	"compounds": [
+		{
+			// Builds the project, starts the SSR debugger, AND opens Chrome.
+			// Chrome connects to ng serve (port 4200) for live reload during debugging.
+			"name": "Debug SSR + Chrome",
+			"configurations": ["Debug SSR backend", "Open browser (ng serve)"],
+			"stopAll": true
 		}
 	]
 }
