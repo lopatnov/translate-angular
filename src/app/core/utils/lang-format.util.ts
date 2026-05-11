@@ -1,37 +1,35 @@
-import { computed, type DestroyRef, signal } from '@angular/core';
+import { type Signal, computed, signal } from '@angular/core';
+import type { DestroyRef } from '@angular/core';
 import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
 import type { AbstractControl } from '@angular/forms';
 
 /**
- * Composable that tracks a `language_format` form control as a signal
- * and fires `onSwitch` whenever the value changes.
+ * Composable that tracks a `language_format` form control and returns
+ * an `isNative` signal. Also fires `onSwitch` on every format change.
  *
- * Declare the result field **after** the form group so that the
- * field-initializer can reference `this.form.controls.*`:
+ * Declare after the form group — field initializers run in order:
  *
  * ```ts
  * protected readonly form = this.fb.nonNullable.group({ language_format: ['bcp47'] });
  *
- * private readonly _lf = useLangFormat(
+ * protected readonly isNative = useLangFormat(
  *   this.form.controls.language_format,
  *   this.destroyRef,
- *   (native) => { // set validators + patchValue per component },
+ *   (native) => { /* set validators + patchValue *\/ },
  * );
- * protected readonly isNative = this._lf.isNative;
  * ```
  */
 export function useLangFormat(
 	control: AbstractControl<string>,
 	destroyRef: DestroyRef,
 	onSwitch: (isNative: boolean) => void,
-) {
+): Signal<boolean> {
 	const langFormat = signal(control.value);
-	const isNative = computed(() => langFormat() === 'native');
 
 	control.valueChanges.pipe(takeUntilDestroyed(destroyRef)).subscribe((fmt) => {
 		langFormat.set(fmt);
 		onSwitch(fmt === 'native');
 	});
 
-	return { langFormat, isNative } as const;
+	return computed(() => langFormat() === 'native');
 }

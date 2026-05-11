@@ -6,11 +6,9 @@ import {
 	signal,
 } from '@angular/core';
 import { FormBuilder, ReactiveFormsModule, Validators } from '@angular/forms';
+import type { LocalizeResponse } from '../../core/services/api.types';
 import { CapabilitiesService } from '../../core/services/capabilities.service';
-import {
-	type LocalizeResponse,
-	TranslateApiService,
-} from '../../core/services/translate-api.service';
+import { TranslateApiService } from '../../core/services/translate-api.service';
 import { apiErrorMessage } from '../../core/utils/api-error.util';
 import { useLangFormat } from '../../core/utils/lang-format.util';
 import { LANGUAGE_FORMATS, LANGUAGES } from '../../core/utils/languages';
@@ -43,7 +41,7 @@ export class LocaleFilesComponent {
 		language_format: ['bcp47'],
 	});
 
-	private readonly _lf = useLangFormat(
+	protected readonly isNative = useLangFormat(
 		this.form.controls.language_format,
 		this.destroyRef,
 		(native) => {
@@ -61,7 +59,6 @@ export class LocaleFilesComponent {
 			);
 		},
 	);
-	protected readonly isNative = this._lf.isNative;
 
 	onFileChange(event: Event): void {
 		const input = event.target as HTMLInputElement;

@@ -6,11 +6,9 @@ import {
 	signal,
 } from '@angular/core';
 import { FormBuilder, ReactiveFormsModule, Validators } from '@angular/forms';
+import type { TranslateResponse } from '../../core/services/api.types';
 import { CapabilitiesService } from '../../core/services/capabilities.service';
-import {
-	TranslateApiService,
-	type TranslateResponse,
-} from '../../core/services/translate-api.service';
+import { TranslateApiService } from '../../core/services/translate-api.service';
 import { apiErrorMessage } from '../../core/utils/api-error.util';
 import { useLangFormat } from '../../core/utils/lang-format.util';
 import { LANGUAGE_FORMATS, LANGUAGES } from '../../core/utils/languages';
@@ -41,7 +39,7 @@ export class TextTranslationComponent {
 		language_format: ['bcp47'],
 	});
 
-	private readonly _lf = useLangFormat(
+	protected readonly isNative = useLangFormat(
 		this.form.controls.language_format,
 		this.destroyRef,
 		(native) => {
@@ -58,7 +56,6 @@ export class TextTranslationComponent {
 			);
 		},
 	);
-	protected readonly isNative = this._lf.isNative;
 
 	submit(): void {
 		if (this.form.invalid) return;

@@ -6,10 +6,8 @@ import {
 	signal,
 } from '@angular/core';
 import { FormBuilder, ReactiveFormsModule, Validators } from '@angular/forms';
-import {
-	type TranscribeResponse,
-	TranslateApiService,
-} from '../../core/services/translate-api.service';
+import type { TranscribeResponse } from '../../core/services/api.types';
+import { TranslateApiService } from '../../core/services/translate-api.service';
 import { apiErrorMessage } from '../../core/utils/api-error.util';
 import { useLangFormat } from '../../core/utils/lang-format.util';
 import { LANGUAGE_FORMATS, LANGUAGES } from '../../core/utils/languages';
@@ -37,31 +35,25 @@ export class SpeechToTextComponent {
 		language_format: ['bcp47'],
 	});
 
-	private readonly _lf = useLangFormat(
+	protected readonly isNative = useLangFormat(
 		this.form.controls.language_format,
 		this.destroyRef,
 		(native) => {
 			const ctrl = this.form.controls.language;
-			native
-				? ctrl.setValidators([Validators.required])
-				: ctrl.clearValidators();
+			native ? ctrl.setValidators([Validators.required]) : ctrl.clearValidators();
 			ctrl.updateValueAndValidity({ emitEvent: false });
-			this.form.patchValue(
-				{ language: native ? '' : 'auto' },
-				{ emitEvent: false },
-			);
+			this.form.patchValue({ language: native ? '' : 'auto' }, { emitEvent: false });
 		},
 	);
-	protected readonly isNative = this._lf.isNative;
 
 	onFileChange(event: Event): void {
 		const input = event.target as HTMLInputElement;
 		this.selectedFile.set(input.files?.[0] ?? null);
 	}
 
-	async submit(): Promise<void> {
+	submit(): void {
 		const file = this.selectedFile();
-		if (!file) return;
+		if (!file || this.form.invalid) return;
 
 		this.loading.set(true);
 		this.error.set(null);
@@ -69,33 +61,22 @@ export class SpeechToTextComponent {
 
 		const { language, language_format } = this.form.getRawValue();
 
-		try {
-			const obs$ = await this.api.transcribe(file, language, language_format);
-			obs$.subscribe({
-				next: (data) => {
-					this.result.set(data);
-					this.loading.set(false);
-				},
-				error: (err) => {
-					this.error.set(apiErrorMessage(err, 'Transcription failed'));
-					this.loading.set(false);
-				},
-			});
-		} catch (err) {
-			this.error.set(
-				err instanceof Error ? err.message : 'Failed to read audio file',
-			);
-			this.loading.set(false);
-		}
+		this.api.transcribe(file, language, language_format).subscribe({
+			next: (data) => {
+				this.result.set(data);
+				this.loading.set(false);
+			},
+			error: (err) => {
+				this.error.set(apiErrorMessage(err, 'Transcription failed'));
+				this.loading.set(false);
+			},
+		});
 	}
 
 	clear(): void {
 		this.selectedFile.set(null);
 		const fmt = this.form.controls.language_format.value;
-		this.form.reset({
-			language: fmt === 'native' ? '' : 'auto',
-			language_format: fmt,
-		});
+		this.form.reset({ language: fmt === 'native' ? '' : 'auto', language_format: fmt });
 		this.result.set(null);
 		this.error.set(null);
 	}
