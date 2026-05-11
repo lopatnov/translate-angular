@@ -19,7 +19,7 @@ test.describe('Localization files', () => {
 		await expect(page.locator('#loc-tgt')).toBeVisible();
 	});
 
-	test('model input is present', async ({ page }) => {
+	test('model select is present', async ({ page }) => {
 		await expect(page.locator('#loc-model')).toBeVisible();
 	});
 

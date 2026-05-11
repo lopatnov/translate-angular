@@ -27,8 +27,8 @@ test.describe('Text translation', () => {
 		await expect(page.locator('#text-input')).toBeVisible();
 	});
 
-	test('model input is present', async ({ page }) => {
-		await expect(page.locator('#model-input')).toBeVisible();
+	test('model select is present', async ({ page }) => {
+		await expect(page.locator('#model-select')).toBeVisible();
 	});
 
 	test('language format select is present', async ({ page }) => {

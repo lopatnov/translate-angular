@@ -76,13 +76,15 @@ TRANSLATE_GRPC_URL=my-server:5100 npm start
 ```txt
 Browser
   └─► ng serve (4200)
-        └─► Express middleware (server.ts)
-              ├─ GET /api/capabilities   ─► getCapabilities()
-              ├─ POST /api/translate     ─► translateText()
-              ├─ POST /api/detect        ─► detectLanguage()
-              ├─ POST /api/localize      ─► translateLocalization()
-              └─ POST /api/transcribe    ─► transcribeAudio()
-                                               └─► @grpc/grpc-js → localhost:5100
+        └─► Express (server.ts)
+              └─► Router (server/routes.ts)
+                    ├─ GET /api/capabilities   ─► getCapabilities()
+                    ├─ POST /api/translate     ─► translateText()
+                    ├─ POST /api/detect        ─► detectLanguage()
+                    ├─ POST /api/localize      ─► translateLocalization()
+                    └─ POST /api/transcribe    ─► transcribeAudio()
+                                                     └─► @grpc/grpc-js → localhost:5100
+                                                           (30 s deadline per call)
 ```
 
 ### gRPC client (generated)
@@ -124,14 +126,14 @@ npm run e2e:ui        # Playwright UI — interactive trace viewer
 
 Test files:
 
-| File                 | Coverage                                           |
-| -------------------- | -------------------------------------------------- |
-| `example.spec.ts`    | Navigation: sidebar links, routing for all 5 pages |
-| `dashboard.spec.ts`  | Heading, loading/capabilities/error states         |
-| `translate.spec.ts`  | Form controls, button enable/disable, Clear        |
-| `detect.spec.ts`     | Form controls, button enable/disable, Clear        |
-| `localize.spec.ts`   | JSON textarea, Upload JSON, collapsible panel      |
-| `transcribe.spec.ts` | WAV file input, accept attribute, disabled state   |
+| File                 | Coverage                                                  |
+| -------------------- | --------------------------------------------------------- |
+| `example.spec.ts`    | Navigation: sidebar links, routing for all 5 pages        |
+| `dashboard.spec.ts`  | Heading, loading/capabilities/error states, gRPC URL hint |
+| `translate.spec.ts`  | Form controls, model select, button enable/disable, Clear |
+| `detect.spec.ts`     | Form controls, button enable/disable, Clear               |
+| `localize.spec.ts`   | JSON textarea, model select, Upload JSON, details panel   |
+| `transcribe.spec.ts` | WAV file input, accept attribute, language select, Clear  |
 
 Tests do **not** require the gRPC service to be running — they validate UI structure and form behavior only.
 
