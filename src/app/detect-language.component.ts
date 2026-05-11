@@ -1,0 +1,133 @@
+import {
+	ChangeDetectionStrategy,
+	Component,
+	inject,
+	signal,
+} from '@angular/core';
+import { FormBuilder, ReactiveFormsModule, Validators } from '@angular/forms';
+import {
+	type DetectResponse,
+	TranslateApiService,
+} from './translate-api.service';
+import { LANGUAGE_FORMATS } from './languages';
+
+@Component({
+	selector: 'app-detect-language',
+	imports: [ReactiveFormsModule],
+	changeDetection: ChangeDetectionStrategy.OnPush,
+	template: `
+    <div class="mb-4">
+      <h2 class="page-title mb-1">Language detection</h2>
+      <p class="lead text-muted mb-0">Detect the language of any text string.</p>
+    </div>
+
+    <div class="card section-card mb-4">
+      <div class="card-body">
+        <form [formGroup]="form" (ngSubmit)="submit()">
+          <div class="row g-3 mb-3">
+            <div class="col-md-3">
+              <label class="form-label" for="fmt-detect">Language format</label>
+              <select id="fmt-detect" class="form-select" formControlName="language_format">
+                @for (f of formats; track f.value) {
+                  <option [value]="f.value">{{ f.label }}</option>
+                }
+              </select>
+            </div>
+          </div>
+
+          <div class="mb-3">
+            <label class="form-label" for="detect-text">Text to detect</label>
+            <textarea id="detect-text" class="form-control" rows="5"
+                      formControlName="text"
+                      placeholder="Paste any text here…">
+            </textarea>
+          </div>
+
+          <div class="d-flex gap-2">
+            <button type="submit" class="btn btn-primary" [disabled]="form.invalid || loading()">
+              @if (loading()) {
+                <span class="spinner-border spinner-border-sm me-2" role="status" aria-hidden="true"></span>
+                Detecting…
+              } @else {
+                Detect language
+              }
+            </button>
+            <button type="button" class="btn btn-outline-secondary" (click)="clear()">Clear</button>
+          </div>
+        </form>
+      </div>
+    </div>
+
+    @if (error()) {
+      <div class="alert alert-danger" role="alert">{{ error() }}</div>
+    }
+
+    @if (result()) {
+      <div class="card section-card">
+        <div class="card-header">
+          <h3 class="h6 mb-0">Detection result</h3>
+        </div>
+        <div class="card-body">
+          <div class="row g-3 align-items-center">
+            <div class="col-md-4">
+              <div class="text-muted small mb-1">Detected language</div>
+              <div class="fs-4 fw-semibold text-warning">{{ result()!.language }}</div>
+            </div>
+            @if (result()!.probability > 0) {
+              <div class="col-md-8">
+                <div class="text-muted small mb-1">
+                  Confidence: {{ (result()!.probability * 100).toFixed(1) }}%
+                </div>
+                <div class="progress" style="height: 12px;" role="progressbar"
+                     [attr.aria-valuenow]="result()!.probability * 100"
+                     aria-valuemin="0" aria-valuemax="100">
+                  <div class="progress-bar bg-warning"
+                       [style.width.%]="result()!.probability * 100">
+                  </div>
+                </div>
+              </div>
+            }
+          </div>
+        </div>
+      </div>
+    }
+  `,
+})
+export class DetectLanguageComponent {
+	private readonly api = inject(TranslateApiService);
+	private readonly fb = inject(FormBuilder);
+
+	protected readonly formats = LANGUAGE_FORMATS;
+	protected readonly loading = signal(false);
+	protected readonly error = signal<string | null>(null);
+	protected readonly result = signal<DetectResponse | null>(null);
+
+	protected readonly form = this.fb.nonNullable.group({
+		text: ['', Validators.required],
+		language_format: ['bcp47'],
+	});
+
+	submit(): void {
+		if (this.form.invalid) return;
+		this.loading.set(true);
+		this.error.set(null);
+		this.result.set(null);
+
+		this.api.detect(this.form.getRawValue()).subscribe({
+			next: (data) => {
+				this.result.set(data);
+				this.loading.set(false);
+			},
+			error: (err) => {
+				this.error.set(err?.error?.error ?? err?.message ?? 'Detection failed');
+				this.loading.set(false);
+			},
+		});
+	}
+
+	clear(): void {
+		this.form.reset({ language_format: 'bcp47' });
+		this.result.set(null);
+		this.error.set(null);
+	}
+}

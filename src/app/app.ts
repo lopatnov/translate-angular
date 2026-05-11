@@ -1,18 +1,27 @@
-import { Component, signal, effect, PLATFORM_ID, inject } from '@angular/core';
+import {
+	Component,
+	ChangeDetectionStrategy,
+	signal,
+	effect,
+	PLATFORM_ID,
+	inject,
+} from '@angular/core';
 import { isPlatformBrowser } from '@angular/common';
+import { RouterOutlet, RouterLink, RouterLinkActive } from '@angular/router';
 
 @Component({
 	selector: 'app-root',
+	imports: [RouterOutlet, RouterLink, RouterLinkActive],
 	templateUrl: './app.html',
 	styleUrl: './app.scss',
+	changeDetection: ChangeDetectionStrategy.OnPush,
 })
 export class App {
-	protected readonly title = signal('translate-angular');
-	private platformId = inject(PLATFORM_ID);
+	protected readonly title = signal('Translate Studio');
+	private readonly platformId = inject(PLATFORM_ID);
 
 	constructor() {
 		effect(() => {
-			// Initialize scroll-to-top button behavior only in browser
 			if (isPlatformBrowser(this.platformId)) {
 				this.setupScrollToTopButton();
 			}
@@ -20,18 +29,14 @@ export class App {
 	}
 
 	private setupScrollToTopButton(): void {
-		const scrollTopBtn = document.getElementById('scroll-to-top');
-		if (!scrollTopBtn) return;
+		const btn = document.getElementById('scroll-to-top');
+		if (!btn) return;
 
 		window.addEventListener('scroll', () => {
-			if (window.scrollY > 300) {
-				scrollTopBtn.classList.add('show');
-			} else {
-				scrollTopBtn.classList.remove('show');
-			}
+			btn.classList.toggle('show', window.scrollY > 300);
 		});
 
-		scrollTopBtn.addEventListener('click', () => {
+		btn.addEventListener('click', () => {
 			window.scrollTo({ top: 0, behavior: 'smooth' });
 		});
 	}

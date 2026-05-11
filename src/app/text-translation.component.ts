@@ -1,78 +1,177 @@
-import { Component } from '@angular/core';
+import {
+	ChangeDetectionStrategy,
+	Component,
+	inject,
+	OnInit,
+	signal,
+} from '@angular/core';
+import { FormBuilder, ReactiveFormsModule, Validators } from '@angular/forms';
+import {
+	type TranslateResponse,
+	TranslateApiService,
+} from './translate-api.service';
+import { LANGUAGE_FORMATS, LANGUAGES } from './languages';
 
 @Component({
 	selector: 'app-text-translation',
-	standalone: true,
+	imports: [ReactiveFormsModule],
+	changeDetection: ChangeDetectionStrategy.OnPush,
 	template: `
-    <section class="mb-4">
-      <div class="card section-card shadow-sm">
-        <div class="card-header d-flex justify-content-between align-items-center">
-          <div>
-            <h2 class="h5 mb-1">Text translation</h2>
-            <p class="text-muted small mb-0">
-              Translate text directly or paste content from your localization files.
-            </p>
+    <div class="mb-4">
+      <h2 class="page-title mb-1">Text translation</h2>
+      <p class="lead text-muted mb-0">Translate text between any two supported languages.</p>
+    </div>
+
+    <div class="card section-card mb-4">
+      <div class="card-body">
+        <form [formGroup]="form" (ngSubmit)="submit()">
+          <div class="row g-3 mb-3">
+            <div class="col-md-4">
+              <label class="form-label" for="src-lang">Source language</label>
+              <select id="src-lang" class="form-select" formControlName="source_language">
+                <option value="auto">Auto-detect</option>
+                @for (lang of languages; track lang.code) {
+                  <option [value]="lang.code">{{ lang.name }}</option>
+                }
+              </select>
+            </div>
+            <div class="col-md-4">
+              <label class="form-label" for="tgt-lang">Target language</label>
+              <select id="tgt-lang" class="form-select" formControlName="target_language">
+                @for (lang of languages; track lang.code) {
+                  <option [value]="lang.code">{{ lang.name }}</option>
+                }
+              </select>
+            </div>
+            <div class="col-md-2">
+              <label class="form-label" for="model-input">Model</label>
+              <input id="model-input" class="form-control" formControlName="model"
+                     placeholder="default" aria-describedby="model-hint">
+              <div id="model-hint" class="form-text">Empty = default</div>
+            </div>
+            <div class="col-md-2">
+              <label class="form-label" for="lang-fmt">Language format</label>
+              <select id="lang-fmt" class="form-select" formControlName="language_format">
+                @for (f of formats; track f.value) {
+                  <option [value]="f.value">{{ f.label }}</option>
+                }
+              </select>
+            </div>
           </div>
-          <span class="badge bg-success">Realtime</span>
+
+          <div class="mb-3">
+            <label class="form-label" for="text-input">Source text</label>
+            <textarea id="text-input" class="form-control" rows="6"
+                      formControlName="text"
+                      placeholder="Enter text to translate…">
+            </textarea>
+          </div>
+
+          <div class="d-flex gap-2">
+            <button type="submit" class="btn btn-primary" [disabled]="form.invalid || loading()">
+              @if (loading()) {
+                <span class="spinner-border spinner-border-sm me-2" role="status" aria-hidden="true"></span>
+                Translating…
+              } @else {
+                Translate
+              }
+            </button>
+            <button type="button" class="btn btn-outline-secondary" (click)="clear()">Clear</button>
+          </div>
+        </form>
+      </div>
+    </div>
+
+    @if (error()) {
+      <div class="alert alert-danger" role="alert">{{ error() }}</div>
+    }
+
+    @if (result()) {
+      <div class="card section-card">
+        <div class="card-header d-flex justify-content-between align-items-center">
+          <h3 class="h6 mb-0">Result</h3>
+          <div class="d-flex gap-2 align-items-center flex-wrap">
+            @if (result()!.detected_language) {
+              <span class="badge bg-warning text-dark">Detected: {{ result()!.detected_language }}</span>
+            }
+            <span class="badge bg-secondary">{{ result()!.model_used }}</span>
+          </div>
         </div>
         <div class="card-body">
-          <div class="row gy-3">
-            <div class="col-md-6">
-              <label class="form-label">Source language</label>
-              <select class="form-select">
-                <option>Auto detect</option>
-                <option>English</option>
-                <option>Russian</option>
-                <option>Spanish</option>
-              </select>
-            </div>
-            <div class="col-md-6">
-              <label class="form-label">Target language</label>
-              <select class="form-select">
-                <option>Russian</option>
-                <option>English</option>
-                <option>French</option>
-                <option>Japanese</option>
-              </select>
-            </div>
-          </div>
-
-          <div class="row gy-3 mt-3">
-            <div class="col-12">
-              <label class="form-label">Source text</label>
-              <textarea
-                class="form-control"
-                rows="6"
-                placeholder="Paste text to translate..."
-              ></textarea>
-            </div>
-            <div class="col-12">
-              <div
-                class="d-flex flex-column flex-sm-row gap-2 align-items-start align-items-sm-center"
-              >
-                <button class="btn btn-primary">Translate</button>
-                <button class="btn btn-outline-secondary">Clear text</button>
-                <span class="badge bg-secondary">Word count: 138</span>
-              </div>
-            </div>
-          </div>
-
-          <div class="mt-4">
-            <div class="d-flex justify-content-between align-items-center mb-2">
-              <span class="small text-muted">Translation preview</span>
-              <span class="small text-warning">Draft saved</span>
-            </div>
-            <div class="card card-quiet p-3">
-              <p class="mb-1">
-                Это пример перевода, который автоматически заполняется в блоке предварительного
-                просмотра.
-              </p>
-              <p class="text-muted small mb-0">Use the text area above to see live output here.</p>
-            </div>
-          </div>
+          <pre class="transcript-preview">{{ result()!.translated_text }}</pre>
+          <button type="button" class="btn btn-outline-secondary btn-sm mt-2"
+                  (click)="copy(result()!.translated_text)">
+            Copy to clipboard
+          </button>
         </div>
       </div>
-    </section>
+    }
   `,
 })
-export class TextTranslationComponent {}
+export class TextTranslationComponent implements OnInit {
+	private readonly api = inject(TranslateApiService);
+	private readonly fb = inject(FormBuilder);
+
+	protected readonly languages = LANGUAGES;
+	protected readonly formats = LANGUAGE_FORMATS;
+	protected readonly loading = signal(false);
+	protected readonly error = signal<string | null>(null);
+	protected readonly result = signal<TranslateResponse | null>(null);
+
+	protected readonly form = this.fb.nonNullable.group({
+		text: ['', Validators.required],
+		source_language: ['auto'],
+		target_language: ['en'],
+		model: [''],
+		language_format: ['bcp47'],
+	});
+
+	ngOnInit(): void {
+		this.form.patchValue({ source_language: 'auto', target_language: 'en' });
+	}
+
+	submit(): void {
+		if (this.form.invalid) return;
+		this.loading.set(true);
+		this.error.set(null);
+		this.result.set(null);
+
+		const { text, source_language, target_language, model, language_format } =
+			this.form.getRawValue();
+
+		this.api
+			.translate({
+				text,
+				source_language,
+				target_language,
+				model: model || undefined,
+				language_format,
+			})
+			.subscribe({
+				next: (data) => {
+					this.result.set(data);
+					this.loading.set(false);
+				},
+				error: (err) => {
+					this.error.set(
+						err?.error?.error ?? err?.message ?? 'Translation failed',
+					);
+					this.loading.set(false);
+				},
+			});
+	}
+
+	clear(): void {
+		this.form.reset({
+			source_language: 'auto',
+			target_language: 'en',
+			language_format: 'bcp47',
+		});
+		this.result.set(null);
+		this.error.set(null);
+	}
+
+	copy(text: string): void {
+		navigator.clipboard.writeText(text);
+	}
+}
