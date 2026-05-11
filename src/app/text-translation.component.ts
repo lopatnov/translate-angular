@@ -1,15 +1,8 @@
-import {
-	ChangeDetectionStrategy,
-	Component,
-	computed,
-	DestroyRef,
-	inject,
-	signal,
-} from '@angular/core';
-import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
+import { ChangeDetectionStrategy, Component, DestroyRef, inject, signal } from '@angular/core';
 import { FormBuilder, ReactiveFormsModule, Validators } from '@angular/forms';
 import { apiErrorMessage } from './api-error.util';
 import { CapabilitiesService } from './capabilities.service';
+import { useLangFormat } from './lang-format.util';
 import { LANGUAGE_FORMATS, LANGUAGES } from './languages';
 import { type TranslateResponse, TranslateApiService } from './translate-api.service';
 
@@ -149,9 +142,6 @@ export class TextTranslationComponent {
 	protected readonly loading = signal(false);
 	protected readonly error = signal<string | null>(null);
 	protected readonly result = signal<TranslateResponse | null>(null);
-	protected readonly langFormat = signal('bcp47');
-	protected readonly isNative = computed(() => this.langFormat() === 'native');
-
 	protected readonly form = this.fb.nonNullable.group({
 		text: ['', Validators.required],
 		source_language: ['auto'],
@@ -160,25 +150,22 @@ export class TextTranslationComponent {
 		language_format: ['bcp47'],
 	});
 
-	// Runs immediately after form is initialized — no ngOnInit needed.
-	private readonly _langFmtSub = this.form.controls.language_format.valueChanges
-		.pipe(takeUntilDestroyed(this.destroyRef))
-		.subscribe((fmt) => {
-			this.langFormat.set(fmt);
+	private readonly _lf = useLangFormat(
+		this.form.controls.language_format,
+		this.destroyRef,
+		(native) => {
 			const ctrl = this.form.controls.target_language;
-			if (fmt === 'native') {
-				ctrl.setValidators([Validators.required]);
-			} else {
-				ctrl.clearValidators();
-			}
+			native ? ctrl.setValidators([Validators.required]) : ctrl.clearValidators();
 			ctrl.updateValueAndValidity({ emitEvent: false });
 			this.form.patchValue(
-				fmt === 'native'
+				native
 					? { source_language: '', target_language: '' }
 					: { source_language: 'auto', target_language: 'en' },
 				{ emitEvent: false },
 			);
-		});
+		},
+	);
+	protected readonly isNative = this._lf.isNative;
 
 	submit(): void {
 		if (this.form.invalid) return;

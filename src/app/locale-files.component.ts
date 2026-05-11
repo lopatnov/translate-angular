@@ -1,15 +1,8 @@
-import {
-	ChangeDetectionStrategy,
-	Component,
-	computed,
-	DestroyRef,
-	inject,
-	signal,
-} from '@angular/core';
-import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
+import { ChangeDetectionStrategy, Component, DestroyRef, inject, signal } from '@angular/core';
 import { FormBuilder, ReactiveFormsModule, Validators } from '@angular/forms';
 import { apiErrorMessage } from './api-error.util';
 import { CapabilitiesService } from './capabilities.service';
+import { useLangFormat } from './lang-format.util';
 import { LANGUAGE_FORMATS, LANGUAGES } from './languages';
 import { type LocalizeResponse, TranslateApiService } from './translate-api.service';
 
@@ -166,9 +159,6 @@ export class LocaleFilesComponent {
 	protected readonly error = signal<string | null>(null);
 	protected readonly result = signal<LocalizeResponse | null>(null);
 	protected readonly prettyResult = signal('');
-	protected readonly langFormat = signal('bcp47');
-	protected readonly isNative = computed(() => this.langFormat() === 'native');
-
 	protected readonly form = this.fb.nonNullable.group({
 		json: ['', Validators.required],
 		source_language: ['en'],
@@ -178,28 +168,25 @@ export class LocaleFilesComponent {
 		language_format: ['bcp47'],
 	});
 
-	private readonly _langFmtSub = this.form.controls.language_format.valueChanges
-		.pipe(takeUntilDestroyed(this.destroyRef))
-		.subscribe((fmt) => {
-			this.langFormat.set(fmt);
+	private readonly _lf = useLangFormat(
+		this.form.controls.language_format,
+		this.destroyRef,
+		(native) => {
 			const src = this.form.controls.source_language;
 			const tgt = this.form.controls.target_language;
-			if (fmt === 'native') {
-				src.setValidators([Validators.required]);
-				tgt.setValidators([Validators.required]);
-			} else {
-				src.clearValidators();
-				tgt.clearValidators();
-			}
+			native ? src.setValidators([Validators.required]) : src.clearValidators();
+			native ? tgt.setValidators([Validators.required]) : tgt.clearValidators();
 			src.updateValueAndValidity({ emitEvent: false });
 			tgt.updateValueAndValidity({ emitEvent: false });
 			this.form.patchValue(
-				fmt === 'native'
+				native
 					? { source_language: '', target_language: '' }
 					: { source_language: 'en', target_language: 'uk' },
 				{ emitEvent: false },
 			);
-		});
+		},
+	);
+	protected readonly isNative = this._lf.isNative;
 
 	onFileChange(event: Event): void {
 		const input = event.target as HTMLInputElement;

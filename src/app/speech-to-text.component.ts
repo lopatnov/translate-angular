@@ -1,15 +1,7 @@
-import {
-	ChangeDetectionStrategy,
-	Component,
-	computed,
-	DestroyRef,
-	inject,
-	OnInit,
-	signal,
-} from '@angular/core';
-import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
+import { ChangeDetectionStrategy, Component, DestroyRef, inject, signal } from '@angular/core';
 import { FormBuilder, ReactiveFormsModule, Validators } from '@angular/forms';
 import { apiErrorMessage } from './api-error.util';
+import { useLangFormat } from './lang-format.util';
 import { LANGUAGE_FORMATS, LANGUAGES } from './languages';
 import { type TranscribeResponse, TranslateApiService } from './translate-api.service';
 
@@ -140,7 +132,7 @@ import { type TranscribeResponse, TranslateApiService } from './translate-api.se
     }
   `,
 })
-export class SpeechToTextComponent implements OnInit {
+export class SpeechToTextComponent {
 	private readonly api = inject(TranslateApiService);
 	private readonly fb = inject(FormBuilder);
 	private readonly destroyRef = inject(DestroyRef);
@@ -151,32 +143,22 @@ export class SpeechToTextComponent implements OnInit {
 	protected readonly error = signal<string | null>(null);
 	protected readonly result = signal<TranscribeResponse | null>(null);
 	protected readonly selectedFile = signal<File | null>(null);
-	protected readonly langFormat = signal('bcp47');
-	protected readonly isNative = computed(() => this.langFormat() === 'native');
-
 	protected readonly form = this.fb.nonNullable.group({
 		language: ['auto'],
 		language_format: ['bcp47'],
 	});
 
-	ngOnInit(): void {
-		this.form.controls.language_format.valueChanges
-			.pipe(takeUntilDestroyed(this.destroyRef))
-			.subscribe((fmt) => {
-				this.langFormat.set(fmt);
-				const ctrl = this.form.controls.language;
-				if (fmt === 'native') {
-					ctrl.setValidators([Validators.required]);
-				} else {
-					ctrl.clearValidators();
-				}
-				ctrl.updateValueAndValidity({ emitEvent: false });
-				this.form.patchValue(
-					{ language: fmt === 'native' ? '' : 'auto' },
-					{ emitEvent: false },
-				);
-			});
-	}
+	private readonly _lf = useLangFormat(
+		this.form.controls.language_format,
+		this.destroyRef,
+		(native) => {
+			const ctrl = this.form.controls.language;
+			native ? ctrl.setValidators([Validators.required]) : ctrl.clearValidators();
+			ctrl.updateValueAndValidity({ emitEvent: false });
+			this.form.patchValue({ language: native ? '' : 'auto' }, { emitEvent: false });
+		},
+	);
+	protected readonly isNative = this._lf.isNative;
 
 	onFileChange(event: Event): void {
 		const input = event.target as HTMLInputElement;
