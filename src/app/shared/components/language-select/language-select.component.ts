@@ -26,8 +26,7 @@ import { LANGUAGES } from '@core/utils/languages';
 })
 export class LanguageSelectComponent {
 	readonly inputId = input.required<string>();
-	// eslint-disable-next-line @typescript-eslint/no-explicit-any
-	readonly control = input.required<FormControl<any>>();
+	readonly control = input.required<FormControl<string | null>>();
 	/** When true, prepends an "auto" option for auto-detection. */
 	readonly includeAuto = input(false);
 
