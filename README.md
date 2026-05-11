@@ -10,25 +10,25 @@ Browser → Angular (port 4200) → Express SSR → @grpc/grpc-js → gRPC servi
 
 ## Pages
 
-| Route | Purpose | gRPC RPC |
-|---|---|---|
-| `/` | Service status, available models | `GetCapabilities` |
-| `/translate` | Text translation with auto-detect | `TranslateText` |
-| `/detect` | Language detection + confidence | `DetectLanguage` |
-| `/localize` | JSON i18n file translation | `TranslateLocalization` |
-| `/transcribe` | WAV → transcript + segments | `TranscribeAudio` |
+| Route         | Purpose                           | gRPC RPC                |
+| ------------- | --------------------------------- | ----------------------- |
+| `/`           | Service status, available models  | `GetCapabilities`       |
+| `/translate`  | Text translation with auto-detect | `TranslateText`         |
+| `/detect`     | Language detection + confidence   | `DetectLanguage`        |
+| `/localize`   | JSON i18n file translation        | `TranslateLocalization` |
+| `/transcribe` | WAV → transcript + segments       | `TranscribeAudio`       |
 
 ---
 
 ## Prerequisites
 
-| Tool | Version | Notes |
-|---|---|---|
-| Node.js | 20 LTS+ | |
-| npm | 11+ | |
-| Angular CLI | 21 | `npm i -g @angular/cli` |
-| buf CLI | 1.x | Required only to regenerate gRPC client after proto changes |
-| Lopatnov.Translate | running | Default: `localhost:5100` |
+| Tool               | Version | Notes                                                       |
+| ------------------ | ------- | ----------------------------------------------------------- |
+| Node.js            | 20 LTS+ |                                                             |
+| npm                | 11+     |                                                             |
+| Angular CLI        | 21      | `npm i -g @angular/cli`                                     |
+| buf CLI            | 1.x     | Required only to regenerate gRPC client after proto changes |
+| Lopatnov.Translate | running | Default: `localhost:5100`                                   |
 
 ---
 
@@ -55,17 +55,17 @@ TRANSLATE_GRPC_URL=my-server:5100 npm start
 
 ## npm scripts
 
-| Script | Description |
-|---|---|
-| `npm start` | Dev server with HMR (port 4200) |
-| `npm run build` | Production build → `dist/` |
-| `npm run generate` | Regenerate gRPC client from `src/protos/translate.proto` via buf + ts-proto |
-| `npm run lint` | Biome lint with auto-fix |
-| `npm run format` | Biome format (write) |
-| `npm run check` | Biome check — reports only, for CI |
-| `npm run e2e` | Playwright end-to-end tests (headless) |
-| `npm run e2e:ui` | Playwright with interactive UI |
-| `npm run debug:ssr` | Start built SSR server with Node inspector on port 9229 |
+| Script              | Description                                                                 |
+| ------------------- | --------------------------------------------------------------------------- |
+| `npm start`         | Dev server with HMR (port 4200)                                             |
+| `npm run build`     | Production build → `dist/`                                                  |
+| `npm run generate`  | Regenerate gRPC client from `src/protos/translate.proto` via buf + ts-proto |
+| `npm run lint`      | Biome lint with auto-fix                                                    |
+| `npm run format`    | Biome format (write)                                                        |
+| `npm run check`     | Biome check — reports only, for CI                                          |
+| `npm run e2e`       | Playwright end-to-end tests (headless)                                      |
+| `npm run e2e:ui`    | Playwright with interactive UI                                              |
+| `npm run debug:ssr` | Start built SSR server with Node inspector on port 9229                     |
 
 ---
 
@@ -73,7 +73,7 @@ TRANSLATE_GRPC_URL=my-server:5100 npm start
 
 ### Dev-time request flow
 
-```
+```txt
 Browser
   └─► ng serve (4200)
         └─► Express middleware (server.ts)
@@ -103,11 +103,11 @@ After updating `translate.proto`, run `npm run generate` and the TypeScript comp
 
 Three launch configurations are pre-configured in `.vscode/launch.json`:
 
-| Config | Description |
-|---|---|
-| **Open browser (ng serve)** | Starts `ng serve`, opens Chrome at 4200 |
-| **Debug SSR backend** | Builds in dev mode, launches `server.mjs` with `--enable-source-maps`. Set breakpoints in `server.ts` / `grpc-client.ts`. Server runs on **port 4000**. |
-| **Debug SSR + Chrome** | Compound: SSR debugger + Chrome side by side |
+| Config                      | Description                                                                                                                                             |
+| --------------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| **Open browser (ng serve)** | Starts `ng serve`, opens Chrome at 4200                                                                                                                 |
+| **Debug SSR backend**       | Builds in dev mode, launches `server.mjs` with `--enable-source-maps`. Set breakpoints in `server.ts` / `grpc-client.ts`. Server runs on **port 4000**. |
+| **Debug SSR + Chrome**      | Compound: SSR debugger + Chrome side by side                                                                                                            |
 
 Press **F5** → pick a config → breakpoints work in TypeScript source files.
 
@@ -124,14 +124,14 @@ npm run e2e:ui        # Playwright UI — interactive trace viewer
 
 Test files:
 
-| File | Coverage |
-|---|---|
-| `example.spec.ts` | Navigation: sidebar links, routing for all 5 pages |
-| `dashboard.spec.ts` | Heading, loading/capabilities/error states |
-| `translate.spec.ts` | Form controls, button enable/disable, Clear |
-| `detect.spec.ts` | Form controls, button enable/disable, Clear |
-| `localize.spec.ts` | JSON textarea, Upload JSON, collapsible panel |
-| `transcribe.spec.ts` | WAV file input, accept attribute, disabled state |
+| File                 | Coverage                                           |
+| -------------------- | -------------------------------------------------- |
+| `example.spec.ts`    | Navigation: sidebar links, routing for all 5 pages |
+| `dashboard.spec.ts`  | Heading, loading/capabilities/error states         |
+| `translate.spec.ts`  | Form controls, button enable/disable, Clear        |
+| `detect.spec.ts`     | Form controls, button enable/disable, Clear        |
+| `localize.spec.ts`   | JSON textarea, Upload JSON, collapsible panel      |
+| `transcribe.spec.ts` | WAV file input, accept attribute, disabled state   |
 
 Tests do **not** require the gRPC service to be running — they validate UI structure and form behavior only.
 
@@ -139,16 +139,16 @@ Tests do **not** require the gRPC service to be running — they validate UI str
 
 ## Environment variables
 
-| Variable | Default | Description |
-|---|---|---|
-| `TRANSLATE_GRPC_URL` | `localhost:5100` | gRPC service address |
-| `PORT` | `4000` | SSR server port (production / debug mode only) |
+| Variable             | Default          | Description                                    |
+| -------------------- | ---------------- | ---------------------------------------------- |
+| `TRANSLATE_GRPC_URL` | `localhost:5100` | gRPC service address                           |
+| `PORT`               | `4000`           | SSR server port (production / debug mode only) |
 
 ---
 
 ## Project structure
 
-```
+```txt
 src/
 ├── protos/
 │   └── translate.proto          # Source of truth for gRPC contract
@@ -172,12 +172,12 @@ src/
 
 ## Tech stack
 
-| Layer | Technology |
-|---|---|
+| Layer     | Technology                                       |
+| --------- | ------------------------------------------------ |
 | Framework | Angular 21 (standalone components, signals, SSR) |
-| UI | Bootstrap 5, dark theme |
-| Server | Express 5 + `@angular/ssr` |
-| gRPC | `@grpc/grpc-js` + ts-proto generated client |
-| Code gen | buf CLI + ts-proto 2.x |
-| Linting | Biome 2.x |
-| Testing | Playwright 1.x |
+| UI        | Bootstrap 5, dark theme                          |
+| Server    | Express 5 + `@angular/ssr`                       |
+| gRPC      | `@grpc/grpc-js` + ts-proto generated client      |
+| Code gen  | buf CLI + ts-proto 2.x                           |
+| Linting   | Biome 2.x                                        |
+| Testing   | Playwright 1.x                                   |
