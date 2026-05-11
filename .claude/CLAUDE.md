@@ -28,11 +28,12 @@ You are an expert in TypeScript, Angular, and scalable web application developme
 - Use `input()` and `output()` functions instead of decorators
 - Use `computed()` for derived state
 - Set `changeDetection: ChangeDetectionStrategy.OnPush` in `@Component` decorator
-- Prefer inline templates for small components
+- Always use external templates (`templateUrl`) and styles (`styleUrl`) — never inline `template:` or `styles:`
+- Every component lives in its own folder: `feature-name.component.{ts,html,scss}`
 - Prefer Reactive forms instead of Template-driven ones
 - Do NOT use `ngClass`, use `class` bindings instead
 - Do NOT use `ngStyle`, use `style` bindings instead
-- When using external templates/styles, use paths relative to the component TS file.
+- Use paths relative to the component TS file for `templateUrl`/`styleUrl`
 
 ## State Management
 
