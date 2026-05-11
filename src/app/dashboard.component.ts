@@ -90,7 +90,7 @@ import {
               <h3 class="h6 mb-0">Quick start</h3>
             </div>
             <div class="card-body d-flex flex-wrap gap-2">
-              <a routerLink="/translate" class="btn btn-primary">Text translation</a>
+              <a routerLink="/translate" class="btn btn-outline-secondary">Text translation</a>
               <a routerLink="/detect" class="btn btn-outline-secondary">Language detection</a>
               <a routerLink="/localize" class="btn btn-outline-secondary">Localization files</a>
               @if (caps()!.sttAvailable) {
