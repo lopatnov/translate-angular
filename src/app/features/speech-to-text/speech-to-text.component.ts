@@ -87,8 +87,10 @@ export class SpeechToTextComponent {
 	}
 
 	formatTime(seconds: number): string {
-		const m = Math.floor(seconds / 60);
-		const s = (seconds % 60).toFixed(1);
+		const totalTenths = Math.round(seconds * 10);
+		const m = Math.floor(totalTenths / 600);
+		const s = ((totalTenths % 600) / 10).toFixed(1);
 		return `${m}:${s.padStart(4, '0')}`;
+	}
 	}
 }
