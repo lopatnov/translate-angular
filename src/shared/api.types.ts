@@ -1,5 +1,7 @@
 /**
- * Client-side API types for translate-angular ↔ Express /api/* communication.
+ * Shared API types for Angular ↔ Express /api/* communication.
+ * Imported by both the server (src/server/routes.ts) and the client
+ * (src/app/core/services/translate-api.service.ts).
  *
  * Request field names use snake_case to match the HTTP JSON body.
  * Response field names use camelCase to match ts-proto generated types.

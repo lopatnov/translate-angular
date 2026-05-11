@@ -11,7 +11,7 @@ import type {
 	TranscribeResponse,
 	TranslateRequest,
 	TranslateResponse,
-} from './api.types';
+} from '../../../shared/api.types';
 
 @Injectable({ providedIn: 'root' })
 export class TranslateApiService {

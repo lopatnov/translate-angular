@@ -1,4 +1,9 @@
 import { Router } from 'express';
+import type {
+	LocalizeRequest,
+	TranscribeRequest,
+	TranslateRequest,
+} from '../shared/api.types';
 import {
 	detectLanguage,
 	getCapabilities,
@@ -35,13 +40,7 @@ export function createApiRouter(): Router {
 	router.post('/translate', async (req, res) => {
 		try {
 			const { text, source_language, target_language, model, language_format } =
-				req.body as {
-					text: string;
-					source_language: string;
-					target_language: string;
-					model?: string;
-					language_format?: string;
-				};
+				req.body as TranslateRequest;
 			res.json(
 				await translateText({
 					text,
@@ -59,10 +58,7 @@ export function createApiRouter(): Router {
 
 	router.post('/detect', async (req, res) => {
 		try {
-			const { text, language_format } = req.body as {
-				text: string;
-				language_format?: string;
-			};
+			const { text, language_format } = req.body as { text: string; language_format?: string };
 			res.json(
 				await detectLanguage({ text, languageFormat: language_format ?? 'bcp47' }),
 			);
@@ -80,14 +76,7 @@ export function createApiRouter(): Router {
 				model,
 				existing_translation,
 				language_format,
-			} = req.body as {
-				json: string;
-				source_language: string;
-				target_language: string;
-				model?: string;
-				existing_translation?: string;
-				language_format?: string;
-			};
+			} = req.body as LocalizeRequest;
 			res.json(
 				await translateLocalization({
 					json,
@@ -106,11 +95,8 @@ export function createApiRouter(): Router {
 
 	router.post('/transcribe', async (req, res) => {
 		try {
-			const { audio_data_base64, language, language_format } = req.body as {
-				audio_data_base64: string;
-				language?: string;
-				language_format?: string;
-			};
+			const { audio_data_base64, language, language_format } =
+				req.body as TranscribeRequest;
 			res.json(
 				await transcribeAudio({
 					audioData: Buffer.from(audio_data_base64, 'base64'),

@@ -5,7 +5,7 @@ import {
 	signal,
 } from '@angular/core';
 import { FormBuilder, ReactiveFormsModule, Validators } from '@angular/forms';
-import type { DetectResponse } from '../../core/services/api.types';
+import type { DetectResponse } from '../../../shared/api.types';
 import { TranslateApiService } from '../../core/services/translate-api.service';
 import { apiErrorMessage } from '../../core/utils/api-error.util';
 import { LANGUAGE_FORMATS } from '../../core/utils/languages';

@@ -6,7 +6,7 @@ import {
 	signal,
 } from '@angular/core';
 import { FormBuilder, ReactiveFormsModule, Validators } from '@angular/forms';
-import type { LocalizeResponse } from '../../core/services/api.types';
+import type { LocalizeResponse } from '../../../shared/api.types';
 import { CapabilitiesService } from '../../core/services/capabilities.service';
 import { TranslateApiService } from '../../core/services/translate-api.service';
 import { apiErrorMessage } from '../../core/utils/api-error.util';
