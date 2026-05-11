@@ -1,6 +1,32 @@
 {
 	"name": "@lopatnov/translate-angular",
 	"version": "2.0.0",
+	"description": "Manual testing UI for the Lopatnov.Translate gRPC service — Angular 21 + SSR + Express.",
+	"keywords": ["angular", "grpc", "translate", "stt", "nlp", "testing-ui"],
+	"author": {
+		"name": "Vitaliy Lopatnov",
+		"email": "lopatniov@gmail.com",
+		"url": "https://github.com/lopatnov"
+	},
+	"license": "Apache-2.0",
+	"homepage": "https://github.com/lopatnov/translate-angular#readme",
+	"repository": {
+		"type": "git",
+		"url": "git+https://github.com/lopatnov/translate-angular.git"
+	},
+	"bugs": {
+		"url": "https://github.com/lopatnov/translate-angular/issues"
+	},
+	"engines": {
+		"node": ">=20"
+	},
+	"files": [
+		"dist/translate-angular"
+	],
+	"main": "dist/translate-angular/server/server.mjs",
+	"bin": {
+		"translate-studio": "dist/translate-angular/server/server.mjs"
+	},
 	"scripts": {
 		"ng": "ng",
 		"start": "ng serve",
