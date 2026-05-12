@@ -95,6 +95,7 @@ export class LocaleFilesComponent {
     this.loading.set(true);
     this.error.set(null);
     this.result.set(null);
+    this.prettyResult.set('');
 
     const {
       json,
@@ -141,6 +142,7 @@ export class LocaleFilesComponent {
       language_format: fmt,
     });
     this.result.set(null);
+    this.prettyResult.set('');
     this.error.set(null);
   }
 

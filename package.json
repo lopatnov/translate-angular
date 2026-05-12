@@ -37,7 +37,7 @@
     "url": "https://github.com/lopatnov/translate-angular/issues"
   },
   "engines": {
-    "node": ">=20"
+    "node": "^20.19.0 || ^22.12.0 || ^24.0.0"
   },
   "files": [
     "dist/translate-angular"
@@ -47,6 +47,7 @@
     "translate-studio": "dist/translate-angular/server/server.mjs"
   },
   "scripts": {
+    "prepack": "npm run build",
     "ng": "ng",
     "start": "ng serve",
     "build": "ng build",

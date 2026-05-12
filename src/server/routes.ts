@@ -139,13 +139,20 @@ export function createApiRouter(): Router {
       res.status(400).json({ error: 'audio_data_base64 is required' });
       return;
     }
-    // Validate base64 — Buffer.from() silently accepts invalid input.
-    const buf = Buffer.from(audio_data_base64, 'base64');
-    if (buf.toString('base64') !== audio_data_base64.replace(/\s+/g, '')) {
-      res.status(400).json({ error: 'audio_data_base64 is not valid base64' });
-      return;
-    }
     try {
+      // Type guard + base64 validation inside try so TypeError from
+      // non-string values is caught and returned as a consistent JSON error.
+      if (typeof audio_data_base64 !== 'string') {
+        res.status(400).json({ error: 'audio_data_base64 must be a string' });
+        return;
+      }
+      const buf = Buffer.from(audio_data_base64, 'base64');
+      if (buf.toString('base64') !== audio_data_base64.replace(/\s+/g, '')) {
+        res
+          .status(400)
+          .json({ error: 'audio_data_base64 is not valid base64' });
+        return;
+      }
       res.json(
         await transcribeAudio({
           audioData: buf,

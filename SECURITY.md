@@ -13,8 +13,12 @@ Only the latest version of Translate Studio (on the `main` branch) receives secu
 
 Please **do not** open a public GitHub issue for security-sensitive findings.
 
-Instead, contact the maintainer directly via
-**[LinkedIn](https://www.linkedin.com/in/lopatnov/)** with:
+Instead, use one of these channels:
+
+- **[GitHub Security Advisories](https://github.com/lopatnov/translate-angular/security/advisories/new)** ← preferred
+- **[LinkedIn](https://www.linkedin.com/in/lopatnov/)** — as fallback
+
+Please include:
 
 1. A description of the issue and its potential impact
 2. Steps to reproduce (or a proof-of-concept, if applicable)

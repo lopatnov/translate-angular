@@ -55,6 +55,8 @@ export class TranslateApiService {
         observer.error(reader.error ?? new Error('Failed to read audio file'));
       };
       reader.readAsDataURL(file);
+      // Abort the read if the consumer unsubscribes (e.g. navigation away).
+      return () => reader.abort();
     }).pipe(
       switchMap((audio_data_base64) => {
         const req: TranscribeRequest = {

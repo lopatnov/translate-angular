@@ -10,7 +10,7 @@
 
 Exercises every gRPC endpoint of Lopatnov.Translate through a clean web interface — no `grpcurl` commands needed.
 
-```
+```txt
 Browser → Angular (port 4200) → Express SSR → @grpc/grpc-js → gRPC service (port 5100)
 ```
 

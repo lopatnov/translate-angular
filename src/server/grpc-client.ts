@@ -29,9 +29,11 @@ const DEADLINE_MS = 30_000;
  * Per-operation deadline for TranscribeAudio — audio processing takes longer.
  * Override with TRANSCRIBE_DEADLINE_MS env var (milliseconds).
  */
-const TRANSCRIBE_DEADLINE_MS = Number(
-  process.env['TRANSCRIBE_DEADLINE_MS'] ?? 120_000,
-);
+const _rawTranscribeDeadline = Number(process.env['TRANSCRIBE_DEADLINE_MS']);
+const TRANSCRIBE_DEADLINE_MS =
+  Number.isFinite(_rawTranscribeDeadline) && _rawTranscribeDeadline > 0
+    ? _rawTranscribeDeadline
+    : 120_000;
 
 let _client: ITranslateServiceClient | null = null;
 
