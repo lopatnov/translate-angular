@@ -1,11 +1,11 @@
 import { status as GrpcStatus } from '@grpc/grpc-js';
-import { Router } from 'express';
 import type {
 	DetectRequest,
 	LocalizeRequest,
 	TranscribeRequest,
 	TranslateRequest,
 } from '@shared/api.types';
+import { Router } from 'express';
 import {
 	detectLanguage,
 	getCapabilities,
@@ -92,7 +92,10 @@ export function createApiRouter(): Router {
 		}
 		try {
 			res.json(
-				await detectLanguage({ text, languageFormat: language_format ?? 'bcp47' }),
+				await detectLanguage({
+					text,
+					languageFormat: language_format ?? 'bcp47',
+				}),
 			);
 		} catch (err) {
 			res.status(grpcErrorToHttpStatus(err)).json({ error: errorMessage(err) });
@@ -130,7 +133,8 @@ export function createApiRouter(): Router {
 	});
 
 	router.post('/transcribe', async (req, res) => {
-		const { audio_data_base64, language, language_format } = req.body as TranscribeRequest;
+		const { audio_data_base64, language, language_format } =
+			req.body as TranscribeRequest;
 		if (!audio_data_base64) {
 			res.status(400).json({ error: 'audio_data_base64 is required' });
 			return;

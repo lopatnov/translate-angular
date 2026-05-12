@@ -1,7 +1,11 @@
-import { provideHttpClient, withFetch, withInterceptors } from '@angular/common/http';
 import {
-	ErrorHandler,
+	provideHttpClient,
+	withFetch,
+	withInterceptors,
+} from '@angular/common/http';
+import {
 	type ApplicationConfig,
+	ErrorHandler,
 	provideBrowserGlobalErrorListeners,
 } from '@angular/core';
 import {
@@ -20,10 +24,7 @@ export const appConfig: ApplicationConfig = {
 			routes,
 			withRouterConfig({ paramsInheritanceStrategy: 'always' }),
 		),
-		provideHttpClient(
-			withFetch(),
-			withInterceptors([errorInterceptor]),
-		),
+		provideHttpClient(withFetch(), withInterceptors([errorInterceptor])),
 		provideClientHydration(withEventReplay()),
 		{ provide: ErrorHandler, useClass: GlobalErrorHandler },
 	],

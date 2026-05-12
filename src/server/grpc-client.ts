@@ -1,15 +1,15 @@
-import { ChannelCredentials, Metadata } from '@grpc/grpc-js';
 import type { CallOptions } from '@grpc/grpc-js';
+import { ChannelCredentials, Metadata } from '@grpc/grpc-js';
 import type {
 	DetectLanguageRequest,
 	DetectLanguageResponse,
 	GetCapabilitiesRequest,
 	GetCapabilitiesResponse,
+	TranslateServiceClient as ITranslateServiceClient,
 	TranscribeAudioRequest,
 	TranscribeAudioResponse,
 	TranslateLocalizationRequest,
 	TranslateLocalizationResponse,
-	TranslateServiceClient as ITranslateServiceClient,
 	TranslateTextRequest,
 	TranslateTextResponse,
 } from './generated/translate';
@@ -29,13 +29,18 @@ const DEADLINE_MS = 30_000;
  * Per-operation deadline for TranscribeAudio — audio processing takes longer.
  * Override with TRANSCRIBE_DEADLINE_MS env var (milliseconds).
  */
-const TRANSCRIBE_DEADLINE_MS = Number(process.env['TRANSCRIBE_DEADLINE_MS'] ?? 120_000);
+const TRANSCRIBE_DEADLINE_MS = Number(
+	process.env['TRANSCRIBE_DEADLINE_MS'] ?? 120_000,
+);
 
 let _client: ITranslateServiceClient | null = null;
 
 function getClient(): ITranslateServiceClient {
 	if (_client) return _client;
-	_client = new TranslateServiceClient(GRPC_URL, ChannelCredentials.createInsecure());
+	_client = new TranslateServiceClient(
+		GRPC_URL,
+		ChannelCredentials.createInsecure(),
+	);
 	return _client;
 }
 
@@ -50,7 +55,9 @@ function call<Req, Res>(
 	request: Req,
 	deadlineMs = DEADLINE_MS,
 ): Promise<Res> {
-	const options: Partial<CallOptions> = { deadline: new Date(Date.now() + deadlineMs) };
+	const options: Partial<CallOptions> = {
+		deadline: new Date(Date.now() + deadlineMs),
+	};
 	return new Promise<Res>((resolve, reject) =>
 		method.call(getClient(), request, new Metadata(), options, (err, res) =>
 			err ? reject(err) : resolve(res),
@@ -65,12 +72,16 @@ export function getCapabilities(
 	return call(getClient().getCapabilities.bind(getClient()) as any, req);
 }
 
-export function translateText(req: TranslateTextRequest): Promise<TranslateTextResponse> {
+export function translateText(
+	req: TranslateTextRequest,
+): Promise<TranslateTextResponse> {
 	// biome-ignore lint/suspicious/noExplicitAny: grpc-js method overloads require cast
 	return call(getClient().translateText.bind(getClient()) as any, req);
 }
 
-export function detectLanguage(req: DetectLanguageRequest): Promise<DetectLanguageResponse> {
+export function detectLanguage(
+	req: DetectLanguageRequest,
+): Promise<DetectLanguageResponse> {
 	// biome-ignore lint/suspicious/noExplicitAny: grpc-js method overloads require cast
 	return call(getClient().detectLanguage.bind(getClient()) as any, req);
 }
@@ -86,7 +97,11 @@ export function transcribeAudio(
 	req: TranscribeAudioRequest,
 ): Promise<TranscribeAudioResponse> {
 	// biome-ignore lint/suspicious/noExplicitAny: grpc-js method overloads require cast
-	return call(getClient().transcribeAudio.bind(getClient()) as any, req, TRANSCRIBE_DEADLINE_MS);
+	return call(
+		getClient().transcribeAudio.bind(getClient()) as any,
+		req,
+		TRANSCRIBE_DEADLINE_MS,
+	);
 }
 
 export function grpcUrl(): string {

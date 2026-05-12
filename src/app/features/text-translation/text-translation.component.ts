@@ -6,21 +6,28 @@ import {
 	signal,
 } from '@angular/core';
 import { FormBuilder, ReactiveFormsModule, Validators } from '@angular/forms';
-import type { TranslateResponse } from '@shared/api.types';
-import { CapabilitiesService } from '@core/services/capabilities.service';
-import { TranslateApiService } from '@core/services/translate-api.service';
-import { apiErrorMessage } from '@core/utils/api-error.util';
-import { useLangFormat } from '@core/utils/lang-format.util';
-import { LANGUAGE_FORMATS } from '@core/utils/languages';
 import { CopyButtonComponent } from '@app/shared/components/copy-button/copy-button.component';
 import { ErrorAlertComponent } from '@app/shared/components/error-alert/error-alert.component';
 import { LanguageSelectComponent } from '@app/shared/components/language-select/language-select.component';
 import { PageHeaderComponent } from '@app/shared/components/page-header/page-header.component';
 import { SubmitButtonComponent } from '@app/shared/components/submit-button/submit-button.component';
+import { CapabilitiesService } from '@core/services/capabilities.service';
+import { TranslateApiService } from '@core/services/translate-api.service';
+import { apiErrorMessage } from '@core/utils/api-error.util';
+import { useLangFormat } from '@core/utils/lang-format.util';
+import { LANGUAGE_FORMATS } from '@core/utils/languages';
+import type { TranslateResponse } from '@shared/api.types';
 
 @Component({
 	selector: 'app-text-translation',
-	imports: [ReactiveFormsModule, LanguageSelectComponent, SubmitButtonComponent, ErrorAlertComponent, PageHeaderComponent, CopyButtonComponent],
+	imports: [
+		ReactiveFormsModule,
+		LanguageSelectComponent,
+		SubmitButtonComponent,
+		ErrorAlertComponent,
+		PageHeaderComponent,
+		CopyButtonComponent,
+	],
 	templateUrl: './text-translation.component.html',
 	styleUrl: './text-translation.component.scss',
 	changeDetection: ChangeDetectionStrategy.OnPush,
@@ -48,7 +55,9 @@ export class TextTranslationComponent {
 		this.destroyRef,
 		(native) => {
 			const ctrl = this.form.controls.target_language;
-			native ? ctrl.setValidators([Validators.required]) : ctrl.clearValidators();
+			native
+				? ctrl.setValidators([Validators.required])
+				: ctrl.clearValidators();
 			ctrl.updateValueAndValidity({ emitEvent: false });
 			this.form.patchValue(
 				native
@@ -69,10 +78,22 @@ export class TextTranslationComponent {
 			this.form.getRawValue();
 
 		this.api
-			.translate({ text, source_language, target_language, model: model || undefined, language_format })
+			.translate({
+				text,
+				source_language,
+				target_language,
+				model: model || undefined,
+				language_format,
+			})
 			.subscribe({
-				next: (data) => { this.result.set(data); this.loading.set(false); },
-				error: (err) => { this.error.set(apiErrorMessage(err, 'Translation failed')); this.loading.set(false); },
+				next: (data) => {
+					this.result.set(data);
+					this.loading.set(false);
+				},
+				error: (err) => {
+					this.error.set(apiErrorMessage(err, 'Translation failed'));
+					this.loading.set(false);
+				},
 			});
 	}
 
@@ -85,5 +106,4 @@ export class TextTranslationComponent {
 		this.result.set(null);
 		this.error.set(null);
 	}
-
 }

@@ -8,8 +8,8 @@ import {
 	signal,
 } from '@angular/core';
 import { RouterLink, RouterLinkActive, RouterOutlet } from '@angular/router';
-import { AppErrorService } from '@core/services/app-error.service';
 import { CreditsComponent } from '@app/shared/components/credits/credits.component';
+import { AppErrorService } from '@core/services/app-error.service';
 
 @Component({
 	selector: 'app-root',

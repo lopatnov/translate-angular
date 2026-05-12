@@ -1,6 +1,5 @@
 import { HttpClient } from '@angular/common/http';
 import { Injectable, inject } from '@angular/core';
-import { Observable, switchMap } from 'rxjs';
 import type {
 	CapabilitiesResponse,
 	DetectRequest,
@@ -12,6 +11,7 @@ import type {
 	TranslateRequest,
 	TranslateResponse,
 } from '@shared/api.types';
+import { Observable, switchMap } from 'rxjs';
 
 @Injectable({ providedIn: 'root' })
 export class TranslateApiService {

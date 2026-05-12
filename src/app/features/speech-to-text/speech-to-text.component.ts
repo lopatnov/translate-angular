@@ -6,20 +6,27 @@ import {
 	signal,
 } from '@angular/core';
 import { FormBuilder, ReactiveFormsModule, Validators } from '@angular/forms';
-import type { TranscribeResponse } from '@shared/api.types';
-import { TranslateApiService } from '@core/services/translate-api.service';
-import { apiErrorMessage } from '@core/utils/api-error.util';
-import { useLangFormat } from '@core/utils/lang-format.util';
-import { LANGUAGE_FORMATS, LANGUAGES } from '@core/utils/languages';
 import { CopyButtonComponent } from '@app/shared/components/copy-button/copy-button.component';
 import { ErrorAlertComponent } from '@app/shared/components/error-alert/error-alert.component';
 import { LanguageSelectComponent } from '@app/shared/components/language-select/language-select.component';
 import { PageHeaderComponent } from '@app/shared/components/page-header/page-header.component';
 import { SubmitButtonComponent } from '@app/shared/components/submit-button/submit-button.component';
+import { TranslateApiService } from '@core/services/translate-api.service';
+import { apiErrorMessage } from '@core/utils/api-error.util';
+import { useLangFormat } from '@core/utils/lang-format.util';
+import { LANGUAGE_FORMATS, LANGUAGES } from '@core/utils/languages';
+import type { TranscribeResponse } from '@shared/api.types';
 
 @Component({
 	selector: 'app-speech-to-text',
-	imports: [ReactiveFormsModule, LanguageSelectComponent, SubmitButtonComponent, ErrorAlertComponent, PageHeaderComponent, CopyButtonComponent],
+	imports: [
+		ReactiveFormsModule,
+		LanguageSelectComponent,
+		SubmitButtonComponent,
+		ErrorAlertComponent,
+		PageHeaderComponent,
+		CopyButtonComponent,
+	],
 	templateUrl: './speech-to-text.component.html',
 	styleUrl: './speech-to-text.component.scss',
 	changeDetection: ChangeDetectionStrategy.OnPush,
@@ -45,9 +52,14 @@ export class SpeechToTextComponent {
 		this.destroyRef,
 		(native) => {
 			const ctrl = this.form.controls.language;
-			native ? ctrl.setValidators([Validators.required]) : ctrl.clearValidators();
+			native
+				? ctrl.setValidators([Validators.required])
+				: ctrl.clearValidators();
 			ctrl.updateValueAndValidity({ emitEvent: false });
-			this.form.patchValue({ language: native ? '' : 'auto' }, { emitEvent: false });
+			this.form.patchValue(
+				{ language: native ? '' : 'auto' },
+				{ emitEvent: false },
+			);
 		},
 	);
 
@@ -81,7 +93,10 @@ export class SpeechToTextComponent {
 	clear(): void {
 		this.selectedFile.set(null);
 		const fmt = this.form.controls.language_format.value;
-		this.form.reset({ language: fmt === 'native' ? '' : 'auto', language_format: fmt });
+		this.form.reset({
+			language: fmt === 'native' ? '' : 'auto',
+			language_format: fmt,
+		});
 		this.result.set(null);
 		this.error.set(null);
 	}

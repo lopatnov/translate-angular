@@ -1,4 +1,7 @@
-import { HttpErrorResponse, type HttpInterceptorFn } from '@angular/common/http';
+import {
+	HttpErrorResponse,
+	type HttpInterceptorFn,
+} from '@angular/common/http';
 import { retry, throwError, timer } from 'rxjs';
 
 /**

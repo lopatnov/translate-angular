@@ -1,6 +1,6 @@
-import { Injectable, computed, inject, signal } from '@angular/core';
-import { apiErrorMessage } from '@core/utils/api-error.util';
+import { computed, Injectable, inject, signal } from '@angular/core';
 import { TranslateApiService } from '@core/services/translate-api.service';
+import { apiErrorMessage } from '@core/utils/api-error.util';
 
 interface CapsState {
 	readonly loaded: boolean;
