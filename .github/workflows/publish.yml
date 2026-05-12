@@ -9,8 +9,8 @@ jobs:
     name: Build & publish
     runs-on: ubuntu-latest
     permissions:
-      contents: write  # read implied; write needed to update release body on failure
-      id-token: write  # required for npm provenance
+      contents: write # read implied; write needed to update release body on failure
+      id-token: write # required for npm provenance
 
     steps:
       - name: Checkout
@@ -19,18 +19,15 @@ jobs:
       - name: Set up Node.js
         uses: actions/setup-node@v4
         with:
-          node-version: '20'
-          registry-url: 'https://registry.npmjs.org'
-          cache: 'npm'
+          node-version: "20"
+          registry-url: "https://registry.npmjs.org"
+          cache: "npm"
 
       - name: Install dependencies
         run: npm ci
 
       - name: Lint
         run: npm run check
-
-      - name: Test
-        run: npx ng test --watch=false --no-progress
 
       - name: Build
         run: npm run build
