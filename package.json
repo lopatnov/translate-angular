@@ -1,75 +1,94 @@
 {
-	"name": "@lopatnov/translate-angular",
-	"version": "2.0.0",
-	"description": "Manual testing UI for the Lopatnov.Translate gRPC service — Angular 21 + SSR + Express.",
-	"keywords": ["angular", "grpc", "translate", "stt", "nlp", "testing-ui"],
-	"author": {
-		"name": "Vitaliy Lopatnov",
-		"email": "lopatniov@gmail.com",
-		"url": "https://github.com/lopatnov"
-	},
-	"license": "Apache-2.0",
-	"homepage": "https://github.com/lopatnov/translate-angular#readme",
-	"repository": {
-		"type": "git",
-		"url": "git+https://github.com/lopatnov/translate-angular.git"
-	},
-	"bugs": {
-		"url": "https://github.com/lopatnov/translate-angular/issues"
-	},
-	"engines": {
-		"node": ">=20"
-	},
-	"files": [
-		"dist/translate-angular"
-	],
-	"main": "dist/translate-angular/server/server.mjs",
-	"bin": {
-		"translate-studio": "dist/translate-angular/server/server.mjs"
-	},
-	"scripts": {
-		"ng": "ng",
-		"start": "ng serve",
-		"build": "ng build",
-		"watch": "ng build --watch --configuration development",
-		"test": "ng test",
-		"serve:ssr:translate-angular": "node dist/translate-angular/server/server.mjs",
-		"lint": "biome lint --write .",
-		"format": "biome format --write .",
-		"check": "biome check . --reporter=github",
-		"lint:staged": "biome lint --write .",
-		"generate": "buf generate",
-		"e2e": "playwright test",
-		"e2e:ui": "playwright test --ui",
-		"debug:ssr": "node --inspect=9229 --enable-source-maps dist/translate-angular/server/server.mjs"
-	},
-	"private": false,
-	"packageManager": "npm@11.14.1",
-	"dependencies": {
-		"@angular/common": "^21.2.12",
-		"@angular/compiler": "^21.2.12",
-		"@angular/core": "^21.2.12",
-		"@angular/forms": "^21.2.12",
-		"@angular/platform-browser": "^21.2.12",
-		"@angular/platform-server": "^21.2.12",
-		"@angular/router": "^21.2.12",
-		"@angular/ssr": "^21.2.10",
-		"@grpc/grpc-js": "^1.14.3",
-		"@grpc/proto-loader": "^0.8.1",
-		"bootstrap": "^5.3.8",
-		"express": "^5.2.1",
-		"rxjs": "~7.8.2",
-		"tslib": "^2.8.1"
-	},
-	"devDependencies": {
-		"@angular/build": "^21.2.10",
-		"@angular/cli": "^21.2.10",
-		"@angular/compiler-cli": "^21.2.12",
-		"@biomejs/biome": "2.4.15",
-		"@playwright/test": "^1.59.1",
-		"@types/express": "^5.0.6",
-		"@types/node": "^25.6.2",
-		"ts-proto": "^2.11.8",
-		"typescript": "~5.9.2"
-	}
+  "name": "@lopatnov/translate-angular",
+  "version": "2.0.0",
+  "description": "Manual testing UI for the Lopatnov.Translate gRPC service — Angular 21 + SSR + Express.",
+  "keywords": [
+    "angular",
+    "angular-ssr",
+    "grpc",
+    "translate",
+    "translation",
+    "text-translation",
+    "speech-to-text",
+    "transcription",
+    "language-detection",
+    "localization",
+    "i18n",
+    "whisper",
+    "nllb",
+    "m2m100",
+    "nlp",
+    "self-hosted",
+    "testing-ui",
+    "dev-tool"
+  ],
+  "author": {
+    "name": "Oleksandr Lopatnov",
+    "email": "lopatniov@gmail.com",
+    "url": "https://github.com/lopatnov"
+  },
+  "license": "Apache-2.0",
+  "homepage": "https://lopatnov.github.io/translate-angular/",
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/lopatnov/translate-angular.git"
+  },
+  "bugs": {
+    "url": "https://github.com/lopatnov/translate-angular/issues"
+  },
+  "engines": {
+    "node": ">=20"
+  },
+  "files": [
+    "dist/translate-angular"
+  ],
+  "main": "dist/translate-angular/server/server.mjs",
+  "bin": {
+    "translate-studio": "dist/translate-angular/server/server.mjs"
+  },
+  "scripts": {
+    "ng": "ng",
+    "start": "ng serve",
+    "build": "ng build",
+    "watch": "ng build --watch --configuration development",
+    "test": "ng test",
+    "serve:ssr:translate-angular": "node dist/translate-angular/server/server.mjs",
+    "lint": "biome lint --write .",
+    "format": "biome format --write .",
+    "check": "biome check . --reporter=github",
+    "lint:staged": "biome lint --write .",
+    "generate": "buf generate",
+    "e2e": "playwright test",
+    "e2e:ui": "playwright test --ui",
+    "debug:ssr": "node --inspect=9229 --enable-source-maps dist/translate-angular/server/server.mjs"
+  },
+  "private": false,
+  "packageManager": "npm@11.14.1",
+  "dependencies": {
+    "@angular/common": "^21.2.12",
+    "@angular/compiler": "^21.2.12",
+    "@angular/core": "^21.2.12",
+    "@angular/forms": "^21.2.12",
+    "@angular/platform-browser": "^21.2.12",
+    "@angular/platform-server": "^21.2.12",
+    "@angular/router": "^21.2.12",
+    "@angular/ssr": "^21.2.10",
+    "@grpc/grpc-js": "^1.14.3",
+    "@grpc/proto-loader": "^0.8.1",
+    "bootstrap": "^5.3.8",
+    "express": "^5.2.1",
+    "rxjs": "~7.8.2",
+    "tslib": "^2.8.1"
+  },
+  "devDependencies": {
+    "@angular/build": "^21.2.10",
+    "@angular/cli": "^21.2.10",
+    "@angular/compiler-cli": "^21.2.12",
+    "@biomejs/biome": "2.4.15",
+    "@playwright/test": "^1.59.1",
+    "@types/express": "^5.0.6",
+    "@types/node": "^25.6.2",
+    "ts-proto": "^2.11.8",
+    "typescript": "~5.9.2"
+  }
 }
