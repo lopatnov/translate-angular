@@ -96,8 +96,8 @@ export function translateLocalization(
 export function transcribeAudio(
 	req: TranscribeAudioRequest,
 ): Promise<TranscribeAudioResponse> {
-	// biome-ignore lint/suspicious/noExplicitAny: grpc-js method overloads require cast
 	return call(
+		// biome-ignore lint/suspicious/noExplicitAny: grpc-js method overloads require cast
 		getClient().transcribeAudio.bind(getClient()) as any,
 		req,
 		TRANSCRIBE_DEADLINE_MS,
