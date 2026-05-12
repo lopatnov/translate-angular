@@ -12,7 +12,8 @@
       "!node_modules",
       "!**/*.angular-cli.json",
       "!src/environments/*",
-      "!**/*.html"
+      "!**/*.html",
+      "!src/server/generated"
     ]
   },
   "formatter": {
