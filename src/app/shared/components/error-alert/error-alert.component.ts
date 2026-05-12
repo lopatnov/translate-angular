@@ -10,11 +10,11 @@ import { ChangeDetectionStrategy, Component, input } from '@angular/core';
  * ```
  */
 @Component({
-	selector: 'app-error-alert',
-	templateUrl: './error-alert.component.html',
-	styleUrl: './error-alert.component.scss',
-	changeDetection: ChangeDetectionStrategy.OnPush,
+  selector: 'app-error-alert',
+  templateUrl: './error-alert.component.html',
+  styleUrl: './error-alert.component.scss',
+  changeDetection: ChangeDetectionStrategy.OnPush,
 })
 export class ErrorAlertComponent {
-	readonly message = input<string | null>(null);
+  readonly message = input<string | null>(null);
 }

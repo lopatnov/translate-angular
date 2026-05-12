@@ -1,6 +1,6 @@
 import {
-	HttpErrorResponse,
-	type HttpInterceptorFn,
+  HttpErrorResponse,
+  type HttpInterceptorFn,
 } from '@angular/common/http';
 import { retry, throwError, timer } from 'rxjs';
 
@@ -19,12 +19,12 @@ const RETRYABLE_STATUSES = new Set([502, 503, 504]);
  * Client errors (4xx) and other failures are re-thrown immediately.
  */
 export const errorInterceptor: HttpInterceptorFn = (req, next) =>
-	next(req).pipe(
-		retry({
-			count: 1,
-			delay: (err: unknown) =>
-				err instanceof HttpErrorResponse && RETRYABLE_STATUSES.has(err.status)
-					? timer(2_000)
-					: throwError(() => err),
-		}),
-	);
+  next(req).pipe(
+    retry({
+      count: 1,
+      delay: (err: unknown) =>
+        err instanceof HttpErrorResponse && RETRYABLE_STATUSES.has(err.status)
+          ? timer(2_000)
+          : throwError(() => err),
+    }),
+  );

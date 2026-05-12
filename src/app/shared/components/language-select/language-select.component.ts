@@ -18,19 +18,19 @@ import { LANGUAGES } from '@core/utils/languages';
  * ```
  */
 @Component({
-	selector: 'app-language-select',
-	imports: [ReactiveFormsModule],
-	templateUrl: './language-select.component.html',
-	styleUrl: './language-select.component.scss',
-	changeDetection: ChangeDetectionStrategy.OnPush,
+  selector: 'app-language-select',
+  imports: [ReactiveFormsModule],
+  templateUrl: './language-select.component.html',
+  styleUrl: './language-select.component.scss',
+  changeDetection: ChangeDetectionStrategy.OnPush,
 })
 export class LanguageSelectComponent {
-	readonly inputId = input.required<string>();
-	readonly control = input.required<FormControl<string | null>>();
-	/** Accessible label for the search input (fallback when no wrapping <label for> is present). */
-	readonly ariaLabel = input<string | undefined>(undefined);
-	/** When true, prepends an "auto" option for auto-detection. */
-	readonly includeAuto = input(false);
+  readonly inputId = input.required<string>();
+  readonly control = input.required<FormControl<string | null>>();
+  /** Accessible label for the search input (fallback when no wrapping <label for> is present). */
+  readonly ariaLabel = input<string | undefined>(undefined);
+  /** When true, prepends an "auto" option for auto-detection. */
+  readonly includeAuto = input(false);
 
-	protected readonly languages = LANGUAGES;
+  protected readonly languages = LANGUAGES;
 }

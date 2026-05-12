@@ -9,21 +9,21 @@ import { AppErrorService } from '@core/services/app-error.service';
  */
 @Injectable()
 export class GlobalErrorHandler implements ErrorHandler {
-	private readonly appError = inject(AppErrorService);
+  private readonly appError = inject(AppErrorService);
 
-	handleError(error: unknown): void {
-		// Always log to console — preserves stack trace for debugging.
-		console.error('[Uncaught error]', error);
+  handleError(error: unknown): void {
+    // Always log to console — preserves stack trace for debugging.
+    console.error('[Uncaught error]', error);
 
-		let message: string;
-		if (error instanceof Error) {
-			message = error.message;
-		} else if (typeof error === 'string') {
-			message = error;
-		} else {
-			message = 'An unexpected error occurred.';
-		}
+    let message: string;
+    if (error instanceof Error) {
+      message = error.message;
+    } else if (typeof error === 'string') {
+      message = error;
+    } else {
+      message = 'An unexpected error occurred.';
+    }
 
-		this.appError.set(message);
-	}
+    this.appError.set(message);
+  }
 }

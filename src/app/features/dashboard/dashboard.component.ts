@@ -3,12 +3,12 @@ import { RouterLink } from '@angular/router';
 import { CapabilitiesService } from '@core/services/capabilities.service';
 
 @Component({
-	selector: 'app-dashboard',
-	imports: [RouterLink],
-	templateUrl: './dashboard.component.html',
-	styleUrl: './dashboard.component.scss',
-	changeDetection: ChangeDetectionStrategy.OnPush,
+  selector: 'app-dashboard',
+  imports: [RouterLink],
+  templateUrl: './dashboard.component.html',
+  styleUrl: './dashboard.component.scss',
+  changeDetection: ChangeDetectionStrategy.OnPush,
 })
 export class DashboardComponent {
-	protected readonly caps = inject(CapabilitiesService);
+  protected readonly caps = inject(CapabilitiesService);
 }

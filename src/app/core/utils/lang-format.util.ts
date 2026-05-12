@@ -19,19 +19,19 @@ import type { AbstractControl } from '@angular/forms';
  * ```
  */
 export function useLangFormat(
-	control: AbstractControl<string>,
-	destroyRef: DestroyRef,
-	onSwitch: (isNative: boolean) => void,
+  control: AbstractControl<string>,
+  destroyRef: DestroyRef,
+  onSwitch: (isNative: boolean) => void,
 ): Signal<boolean> {
-	const langFormat = signal(control.value);
+  const langFormat = signal(control.value);
 
-	// Fire once immediately so validators / patchValue run on init, not just on change.
-	onSwitch(control.value === 'native');
+  // Fire once immediately so validators / patchValue run on init, not just on change.
+  onSwitch(control.value === 'native');
 
-	control.valueChanges.pipe(takeUntilDestroyed(destroyRef)).subscribe((fmt) => {
-		langFormat.set(fmt);
-		onSwitch(fmt === 'native');
-	});
+  control.valueChanges.pipe(takeUntilDestroyed(destroyRef)).subscribe((fmt) => {
+    langFormat.set(fmt);
+    onSwitch(fmt === 'native');
+  });
 
-	return computed(() => langFormat() === 'native');
+  return computed(() => langFormat() === 'native');
 }

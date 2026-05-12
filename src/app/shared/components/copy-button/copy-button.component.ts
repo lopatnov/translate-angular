@@ -11,20 +11,20 @@ import { ChangeDetectionStrategy, Component, input } from '@angular/core';
  * ```
  */
 @Component({
-	selector: 'app-copy-button',
-	templateUrl: './copy-button.component.html',
-	styleUrl: './copy-button.component.scss',
-	changeDetection: ChangeDetectionStrategy.OnPush,
+  selector: 'app-copy-button',
+  templateUrl: './copy-button.component.html',
+  styleUrl: './copy-button.component.scss',
+  changeDetection: ChangeDetectionStrategy.OnPush,
 })
 export class CopyButtonComponent {
-	readonly text = input.required<string>();
-	readonly label = input('Copy to clipboard');
+  readonly text = input.required<string>();
+  readonly label = input('Copy to clipboard');
 
-	protected async copy(): Promise<void> {
-		try {
-			await navigator.clipboard.writeText(this.text());
-		} catch (err) {
-			console.error('[CopyButton] clipboard write failed', err);
-		}
-	}
+  protected async copy(): Promise<void> {
+    try {
+      await navigator.clipboard.writeText(this.text());
+    } catch (err) {
+      console.error('[CopyButton] clipboard write failed', err);
+    }
+  }
 }

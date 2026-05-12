@@ -8,68 +8,68 @@
  */
 
 export interface CapabilitiesResponse {
-	availableModels: string[];
-	availableVoices: string[];
-	sttAvailable: boolean;
-	ttsAvailable: boolean;
+  availableModels: string[];
+  availableVoices: string[];
+  sttAvailable: boolean;
+  ttsAvailable: boolean;
 }
 
 export interface TranslateRequest {
-	text: string;
-	source_language?: string;
-	target_language: string;
-	model?: string;
-	language_format?: string;
+  text: string;
+  source_language?: string;
+  target_language: string;
+  model?: string;
+  language_format?: string;
 }
 
 export interface TranslateResponse {
-	translatedText: string;
-	detectedLanguage?: string;
-	modelUsed: string;
+  translatedText: string;
+  detectedLanguage?: string;
+  modelUsed: string;
 }
 
 export interface DetectRequest {
-	text: string;
-	language_format?: string;
+  text: string;
+  language_format?: string;
 }
 
 export interface DetectResponse {
-	language: string;
-	probability: number;
+  language: string;
+  probability: number;
 }
 
 export interface LocalizeRequest {
-	json: string;
-	source_language: string;
-	target_language: string;
-	model?: string;
-	existing_translation?: string;
-	language_format?: string;
+  json: string;
+  source_language: string;
+  target_language: string;
+  model?: string;
+  existing_translation?: string;
+  language_format?: string;
 }
 
 export interface LocalizeResponse {
-	json: string;
-	stringsTranslated: number;
+  json: string;
+  stringsTranslated: number;
 }
 
 export interface TranscribeRequest {
-	audio_data_base64: string;
-	language?: string;
-	language_format?: string;
+  audio_data_base64: string;
+  language?: string;
+  language_format?: string;
 }
 
 export interface TranscriptionSegment {
-	text: string;
-	startTime: number;
-	endTime: number;
+  text: string;
+  startTime: number;
+  endTime: number;
 }
 
 export interface TranscribeResponse {
-	fullText: string;
-	detectedLanguage?: string;
-	segments: TranscriptionSegment[];
+  fullText: string;
+  detectedLanguage?: string;
+  segments: TranscriptionSegment[];
 }
 
 export interface ApiError {
-	error: string;
+  error: string;
 }

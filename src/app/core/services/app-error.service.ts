@@ -7,16 +7,16 @@ import { Injectable, signal } from '@angular/core';
  */
 @Injectable({ providedIn: 'root' })
 export class AppErrorService {
-	private readonly _message = signal<string | null>(null);
+  private readonly _message = signal<string | null>(null);
 
-	/** Last uncaught error message, or null when none. */
-	readonly message = this._message.asReadonly();
+  /** Last uncaught error message, or null when none. */
+  readonly message = this._message.asReadonly();
 
-	set(message: string): void {
-		this._message.set(message);
-	}
+  set(message: string): void {
+    this._message.set(message);
+  }
 
-	clear(): void {
-		this._message.set(null);
-	}
+  clear(): void {
+    this._message.set(null);
+  }
 }

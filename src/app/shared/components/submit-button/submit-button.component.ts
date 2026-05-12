@@ -14,18 +14,18 @@ import { ChangeDetectionStrategy, Component, input } from '@angular/core';
  * ```
  */
 @Component({
-	selector: 'app-submit-button',
-	templateUrl: './submit-button.component.html',
-	styleUrl: './submit-button.component.scss',
-	changeDetection: ChangeDetectionStrategy.OnPush,
+  selector: 'app-submit-button',
+  templateUrl: './submit-button.component.html',
+  styleUrl: './submit-button.component.scss',
+  changeDetection: ChangeDetectionStrategy.OnPush,
 })
 export class SubmitButtonComponent {
-	/** Disables the button regardless of loading state (e.g. form.invalid). */
-	readonly disabled = input(false);
-	/** Shows a spinner and replaces the label with loadingLabel. */
-	readonly loading = input.required<boolean>();
-	/** Button label in idle state. */
-	readonly label = input.required<string>();
-	/** Button label while loading. Defaults to label + "…" */
-	readonly loadingLabel = input<string>('');
+  /** Disables the button regardless of loading state (e.g. form.invalid). */
+  readonly disabled = input(false);
+  /** Shows a spinner and replaces the label with loadingLabel. */
+  readonly loading = input.required<boolean>();
+  /** Button label in idle state. */
+  readonly label = input.required<string>();
+  /** Button label while loading. Defaults to label + "…" */
+  readonly loadingLabel = input<string>('');
 }
