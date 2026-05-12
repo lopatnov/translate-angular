@@ -87,10 +87,10 @@ export class SpeechToTextComponent {
 	}
 
 	formatTime(seconds: number): string {
-		// Round to 1 decimal first to avoid "1:60.0" when toFixed rounds up.
-		const total = Math.round(seconds * 10) / 10;
-		const m = Math.floor(total / 60);
-		const s = (total - m * 60).toFixed(1);
+		// Use integer tenths to avoid floating-point rollover (e.g. "1:60.0").
+		const totalTenths = Math.round(seconds * 10);
+		const m = Math.floor(totalTenths / 600);
+		const s = ((totalTenths % 600) / 10).toFixed(1);
 		return `${m}:${s.padStart(4, '0')}`;
 	}
 }
