@@ -1,10 +1,35 @@
 # Translate Studio
 
-A manual testing UI for the [Lopatnov.Translate](https://github.com/lopatnov/translate) gRPC service. Built with **Angular 21 + SSR**, it lets you exercise every gRPC endpoint through a clean web interface without writing a single `grpcurl` command.
+> Manual testing UI for the [Lopatnov.Translate](https://github.com/lopatnov/translate) gRPC service. **Angular 21 · SSR · Express · Bootstrap 5.**
+
+[![CI](https://github.com/lopatnov/translate-angular/actions/workflows/ci.yml/badge.svg)](https://github.com/lopatnov/translate-angular/actions/workflows/ci.yml)
+[![npm](https://img.shields.io/npm/v/@lopatnov/translate-angular)](https://www.npmjs.com/package/@lopatnov/translate-angular)
+[![License: Apache 2.0](https://img.shields.io/badge/License-Apache%202.0-blue.svg)](LICENSE)
+[![GitHub issues](https://img.shields.io/github/issues/lopatnov/translate-angular)](https://github.com/lopatnov/translate-angular/issues)
+[![GitHub stars](https://img.shields.io/github/stars/lopatnov/translate-angular?style=social)](https://github.com/lopatnov/translate-angular/stargazers)
+
+Exercises every gRPC endpoint of Lopatnov.Translate through a clean web interface — no `grpcurl` commands needed.
 
 ```
 Browser → Angular (port 4200) → Express SSR → @grpc/grpc-js → gRPC service (port 5100)
 ```
+
+---
+
+## Table of Contents
+
+- [Pages](#pages)
+- [Prerequisites](#prerequisites)
+- [Getting Started](#getting-started)
+- [npm Scripts](#npm-scripts)
+- [Architecture](#architecture)
+- [Debugging](#debugging-vs-code--cursor)
+- [End-to-End Tests](#end-to-end-tests)
+- [Environment Variables](#environment-variables)
+- [Project Structure](#project-structure)
+- [Built With](#built-with)
+- [Contributing](#contributing)
+- [License](#license)
 
 ---
 
@@ -32,14 +57,13 @@ Browser → Angular (port 4200) → Express SSR → @grpc/grpc-js → gRPC servi
 
 ---
 
-## Getting started
+## Getting Started
 
 ```bash
 git clone https://github.com/lopatnov/translate-angular.git
 cd translate-angular
+cp .env .env.local          # adjust if your gRPC service runs on a different host
 npm install
-
-# Start the dev server (includes Angular SSR + gRPC proxy on port 4200)
 npm start
 ```
 
@@ -53,7 +77,7 @@ TRANSLATE_GRPC_URL=my-server:5100 npm start
 
 ---
 
-## npm scripts
+## npm Scripts
 
 | Script              | Description                                                                 |
 | ------------------- | --------------------------------------------------------------------------- |
@@ -71,7 +95,7 @@ TRANSLATE_GRPC_URL=my-server:5100 npm start
 
 ## Architecture
 
-### Dev-time request flow
+### Request flow
 
 ```txt
 Browser
@@ -84,7 +108,7 @@ Browser
                     ├─ POST /api/localize      ─► translateLocalization()
                     └─ POST /api/transcribe    ─► transcribeAudio()
                                                      └─► @grpc/grpc-js → localhost:5100
-                                                           (30 s deadline per call)
+                                                           (30 s deadline; 120 s for transcribe)
 ```
 
 ### gRPC client (generated)
@@ -95,8 +119,7 @@ The TypeScript gRPC client is generated from `src/protos/translate.proto` using 
 npm run generate        # runs: buf generate
 ```
 
-Generated output lands in **`src/server/generated/translate.ts`** (gitignored — always regenerate locally). The file exposes fully-typed interfaces and a `TranslateServiceClient` class; `src/server/grpc-client.ts` wraps it into promise-based helper functions used by `src/server.ts`.
-
+Generated output lands in **`src/server/generated/translate.ts`** (gitignored — always regenerate locally).  
 After updating `translate.proto`, run `npm run generate` and the TypeScript compiler will surface any breaking changes immediately.
 
 ---
@@ -115,7 +138,7 @@ Press **F5** → pick a config → breakpoints work in TypeScript source files.
 
 ---
 
-## End-to-end tests
+## End-to-End Tests
 
 Tests live in `e2e/` and run against the `ng serve` dev server (started automatically by Playwright).
 
@@ -123,8 +146,6 @@ Tests live in `e2e/` and run against the `ng serve` dev server (started automati
 npm run e2e           # headless, all browsers
 npm run e2e:ui        # Playwright UI — interactive trace viewer
 ```
-
-Test files:
 
 | File                 | Coverage                                                  |
 | -------------------- | --------------------------------------------------------- |
@@ -139,16 +160,17 @@ Tests do **not** require the gRPC service to be running — they validate UI str
 
 ---
 
-## Environment variables
+## Environment Variables
 
-| Variable             | Default          | Description                                    |
-| -------------------- | ---------------- | ---------------------------------------------- |
-| `TRANSLATE_GRPC_URL` | `localhost:5100` | gRPC service address                           |
-| `PORT`               | `4000`           | SSR server port (production / debug mode only) |
+| Variable                | Default          | Description                                              |
+| ----------------------- | ---------------- | -------------------------------------------------------- |
+| `TRANSLATE_GRPC_URL`    | `localhost:5100` | gRPC service address                                     |
+| `PORT`                  | `4000`           | SSR server port (production / debug mode only)           |
+| `TRANSCRIBE_DEADLINE_MS`| `120000`         | gRPC deadline for TranscribeAudio calls (milliseconds)   |
 
 ---
 
-## Project structure
+## Project Structure
 
 ```txt
 src/
@@ -157,47 +179,67 @@ src/
 ├── server/
 │   ├── generated/
 │   │   └── translate.ts             # ← generated by buf (gitignored)
-│   └── grpc-client.ts               # Singleton gRPC client, Promise API
-├── server.ts                        # Express entry: middleware, /api/* routes, SSR
-├── app/
-│   ├── core/
-│   │   ├── services/
-│   │   │   ├── capabilities.service.ts  # Singleton: GetCapabilities as signals
-│   │   │   └── translate-api.service.ts # HttpClient → /api/*
-│   │   └── utils/
-│   │       ├── api-error.util.ts    # Extract message from HttpErrorResponse
-│   │       ├── lang-format.util.ts  # Composable: language_format signal + isNative
-│   │       └── languages.ts         # NLLB-200 language list + format options
-│   ├── features/
-│   │   ├── dashboard/
-│   │   │   ├── components/
-│   │   │   │   └── activity-board/  # Sub-component (placeholder)
-│   │   │   └── dashboard.component.*
-│   │   ├── detect-language/
-│   │   │   └── detect-language.component.*
-│   │   ├── locale-files/
-│   │   │   └── locale-files.component.*
-│   │   ├── speech-to-text/
-│   │   │   └── speech-to-text.component.*
-│   │   └── text-translation/
-│   │       └── text-translation.component.*
-│   ├── app.ts / app.html / app.scss # Shell: sidebar nav + router outlet
-│   ├── app.routes.ts                # Lazy-loaded feature routes
-│   └── app.config.ts
-├── styles.scss                      # Global Bootstrap theme + shared styles
-└── index.html
+│   ├── grpc-client.ts               # Singleton gRPC client, Promise API
+│   └── routes.ts                    # Express Router — /api/* → gRPC
+├── server.ts                        # Express entry: middleware, SSR handler
+├── shared/
+│   └── api.types.ts                 # Request/response interfaces (shared by server + client)
+└── app/
+    ├── core/
+    │   ├── interceptors/
+    │   │   └── error.interceptor.ts # HTTP retry on 502/503/504
+    │   ├── services/
+    │   │   ├── app-error.service.ts     # Global error signal
+    │   │   ├── capabilities.service.ts  # Singleton: GetCapabilities as signals
+    │   │   └── translate-api.service.ts # HttpClient → /api/*
+    │   └── utils/
+    │       ├── api-error.util.ts    # Extract message from HttpErrorResponse
+    │       ├── lang-format.util.ts  # Composable: language_format signal + isNative
+    │       └── languages.ts         # NLLB-200 language list + format options
+    ├── features/
+    │   ├── dashboard/               # GetCapabilities → service status, model list
+    │   ├── detect-language/         # DetectLanguage → language + confidence
+    │   ├── locale-files/            # TranslateLocalization → JSON i18n translation
+    │   ├── speech-to-text/          # TranscribeAudio → transcript + segments
+    │   └── text-translation/        # TranslateText → translated text
+    ├── shared/
+    │   └── components/
+    │       ├── copy-button/         # Clipboard copy with execCommand fallback
+    │       ├── credits/             # GitHub + LinkedIn links
+    │       ├── error-alert/         # Dismissible error banner
+    │       ├── language-select/     # Searchable datalist input (183 languages)
+    │       ├── page-header/         # Page title + subtitle
+    │       └── submit-button/       # Loading-aware submit button
+    ├── app.ts / app.html / app.scss # Shell: sidebar nav + router outlet
+    ├── app.routes.ts                # Lazy-loaded feature routes
+    └── app.config.ts
 ```
 
 ---
 
-## Tech stack
+## Built With
 
 | Layer     | Technology                                       |
 | --------- | ------------------------------------------------ |
-| Framework | Angular 21 (standalone components, signals, SSR) |
-| UI        | Bootstrap 5, dark theme                          |
-| Server    | Express 5 + `@angular/ssr`                       |
-| gRPC      | `@grpc/grpc-js` + ts-proto generated client      |
-| Code gen  | buf CLI + ts-proto 2.x                           |
-| Linting   | Biome 2.x                                        |
-| Testing   | Playwright 1.x                                   |
+| Framework | [Angular 21](https://angular.dev) (standalone components, signals, SSR) |
+| UI        | [Bootstrap 5](https://getbootstrap.com), dark theme |
+| Server    | [Express 5](https://expressjs.com) + `@angular/ssr` |
+| gRPC      | [`@grpc/grpc-js`](https://github.com/grpc/grpc-node) + ts-proto generated client |
+| Code gen  | [buf CLI](https://buf.build) + [ts-proto](https://github.com/stephenh/ts-proto) 2.x |
+| Linting   | [Biome](https://biomejs.dev) 2.x                 |
+| Testing   | [Playwright](https://playwright.dev) 1.x         |
+
+---
+
+## Contributing
+
+Contributions are welcome. Please read [CONTRIBUTING.md](CONTRIBUTING.md) before opening a pull request.
+
+- Bug reports and feature requests → [open an issue](https://github.com/lopatnov/translate-angular/issues)
+- Found it useful? A [star on GitHub](https://github.com/lopatnov/translate-angular/stargazers) helps others discover the project
+
+---
+
+## License
+
+[Apache 2.0](LICENSE) © 2026 [Oleksandr Lopatnov](https://github.com/lopatnov) · [LinkedIn](https://www.linkedin.com/in/lopatnov/)
