@@ -6,7 +6,8 @@
   [attr.list]="inputId() + '-list'"
   autocomplete="off"
   spellcheck="false"
-  placeholder="Type code or name…">
+  placeholder="Type code or name…"
+  [attr.aria-label]="ariaLabel() ?? null">
 
 <datalist [id]="inputId() + '-list'">
   @if (includeAuto()) {

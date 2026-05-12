@@ -1,6 +1,6 @@
 import { HttpClient } from '@angular/common/http';
 import { Injectable, inject } from '@angular/core';
-import { type Observable, from, map, switchMap } from 'rxjs';
+import { Observable, switchMap } from 'rxjs';
 import type {
 	CapabilitiesResponse,
 	DetectRequest,
@@ -34,21 +34,28 @@ export class TranslateApiService {
 	}
 
 	/**
-	 * Read a WAV File, encode it as base64, and POST to /api/transcribe.
-	 * Returns an Observable — no need to await the caller.
+	 * Read a WAV File via FileReader (native browser API — non-blocking),
+	 * encode it as base64, and POST to /api/transcribe.
 	 */
 	transcribe(
 		file: File,
 		language = 'auto',
 		languageFormat = 'bcp47',
 	): Observable<TranscribeResponse> {
-		return from(file.arrayBuffer()).pipe(
-			map((buffer) => {
-				const bytes = new Uint8Array(buffer);
-				let binary = '';
-				for (const byte of bytes) binary += String.fromCharCode(byte);
-				return btoa(binary);
-			}),
+		return new Observable<string>((observer) => {
+			const reader = new FileReader();
+			reader.onload = () => {
+				const dataUrl = reader.result as string;
+				// Strip the "data:<mime>;base64," prefix to get the raw base64 string.
+				const base64 = dataUrl.split(',')[1];
+				observer.next(base64);
+				observer.complete();
+			};
+			reader.onerror = () => {
+				observer.error(reader.error ?? new Error('Failed to read audio file'));
+			};
+			reader.readAsDataURL(file);
+		}).pipe(
 			switchMap((audio_data_base64) => {
 				const req: TranscribeRequest = {
 					audio_data_base64,

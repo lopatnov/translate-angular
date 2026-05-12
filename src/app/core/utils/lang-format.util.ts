@@ -1,5 +1,4 @@
-import { type Signal, computed, signal } from '@angular/core';
-import type { DestroyRef } from '@angular/core';
+import { type DestroyRef, type Signal, computed, signal } from '@angular/core';
 import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
 import type { AbstractControl } from '@angular/forms';
 
@@ -25,6 +24,9 @@ export function useLangFormat(
 	onSwitch: (isNative: boolean) => void,
 ): Signal<boolean> {
 	const langFormat = signal(control.value);
+
+	// Fire once immediately so validators / patchValue run on init, not just on change.
+	onSwitch(control.value === 'native');
 
 	control.valueChanges.pipe(takeUntilDestroyed(destroyRef)).subscribe((fmt) => {
 		langFormat.set(fmt);

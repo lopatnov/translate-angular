@@ -54,3 +54,9 @@ You are an expert in TypeScript, Angular, and scalable web application developme
 - Design services around a single responsibility
 - Use the `providedIn: 'root'` option for singleton services
 - Use the `inject()` function instead of constructor injection
+
+## Build Budget Notes
+
+- `angular.json` has `maximumWarning: 600kB` for the initial bundle (default is 500kB).
+  Reason: Bootstrap 5 CSS + Angular SSR adds ~90 kB over the default threshold.
+  This is intentional and should not be lowered without first reducing Bootstrap usage.

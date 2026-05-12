@@ -22,8 +22,14 @@ import { TranslateServiceClient } from './generated/translate';
 
 const GRPC_URL = process.env['TRANSLATE_GRPC_URL'] ?? 'localhost:5100';
 
-/** Default deadline for all unary gRPC calls (30 seconds). */
+/** Default deadline for fast unary gRPC calls (30 seconds). */
 const DEADLINE_MS = 30_000;
+
+/**
+ * Per-operation deadline for TranscribeAudio — audio processing takes longer.
+ * Override with TRANSCRIBE_DEADLINE_MS env var (milliseconds).
+ */
+const TRANSCRIBE_DEADLINE_MS = Number(process.env['TRANSCRIBE_DEADLINE_MS'] ?? 120_000);
 
 let _client: ITranslateServiceClient | null = null;
 
@@ -33,7 +39,7 @@ function getClient(): ITranslateServiceClient {
 	return _client;
 }
 
-/** Promisify a unary gRPC call with a default deadline. */
+/** Promisify a unary gRPC call with a configurable deadline. */
 function call<Req, Res>(
 	method: (
 		req: Req,
@@ -42,8 +48,9 @@ function call<Req, Res>(
 		cb: (err: Error | null, res: Res) => void,
 	) => unknown,
 	request: Req,
+	deadlineMs = DEADLINE_MS,
 ): Promise<Res> {
-	const options: Partial<CallOptions> = { deadline: new Date(Date.now() + DEADLINE_MS) };
+	const options: Partial<CallOptions> = { deadline: new Date(Date.now() + deadlineMs) };
 	return new Promise<Res>((resolve, reject) =>
 		method.call(getClient(), request, new Metadata(), options, (err, res) =>
 			err ? reject(err) : resolve(res),
@@ -79,7 +86,7 @@ export function transcribeAudio(
 	req: TranscribeAudioRequest,
 ): Promise<TranscribeAudioResponse> {
 	// biome-ignore lint/suspicious/noExplicitAny: grpc-js method overloads require cast
-	return call(getClient().transcribeAudio.bind(getClient()) as any, req);
+	return call(getClient().transcribeAudio.bind(getClient()) as any, req, TRANSCRIBE_DEADLINE_MS);
 }
 
 export function grpcUrl(): string {

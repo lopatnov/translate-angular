@@ -79,15 +79,21 @@
           </select>
         </div>
         <div class="col-md-2 d-flex align-items-end">
-          <label class="btn btn-outline-secondary w-100">
-            Upload JSON
-            <input
-              type="file"
-              accept=".json"
-              class="d-none"
-              (change)="onFileChange($event)"
-            />
-          </label>
+          <label
+            for="loc-file-upload"
+            class="btn btn-outline-secondary w-100"
+            tabindex="0"
+            (keydown.enter)="locFileInput.click()"
+            (keydown.space)="$event.preventDefault(); locFileInput.click()"
+          >Upload JSON</label>
+          <input
+            #locFileInput
+            id="loc-file-upload"
+            type="file"
+            accept=".json"
+            class="visually-hidden"
+            (change)="onFileChange($event)"
+          />
         </div>
       </div>
 

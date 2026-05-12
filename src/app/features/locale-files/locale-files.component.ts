@@ -75,6 +75,9 @@ export class LocaleFilesComponent {
 			const text = e.target?.result as string;
 			this.form.patchValue({ json: text });
 		};
+		reader.onerror = () => {
+			this.error.set(`Failed to read file: ${reader.error?.message ?? 'unknown error'}`);
+		};
 		reader.readAsText(file);
 	}
 
