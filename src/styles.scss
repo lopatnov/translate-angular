@@ -233,6 +233,127 @@ section[class*="widget"] {
 }
 
 /* =========================================================
+   DARK THEME FIXES
+========================================================= */
+
+// btn-outline-secondary: Bootstrap generates text color = $secondary (#3a2a1c),
+// which is near-invisible on our dark background. Override with light muted color.
+.btn-outline-secondary {
+  --bs-btn-color: #{$light};
+  --bs-btn-border-color: #{rgba($light, 0.3)};
+  --bs-btn-hover-color: #{$dark};
+  --bs-btn-hover-bg: #{$light};
+  --bs-btn-hover-border-color: #{$light};
+  --bs-btn-active-color: #{$dark};
+  --bs-btn-active-bg: #{$light};
+  --bs-btn-active-border-color: #{$light};
+  --bs-btn-disabled-color: #{rgba($light, 0.35)};
+  --bs-btn-disabled-border-color: #{rgba($light, 0.15)};
+}
+
+// <input type="file"> browser-native button: Bootstrap uses --bs-tertiary-bg
+// which defaults to the light-theme value when data-bs-theme="dark" is absent.
+// Result: light button background + light text = invisible "Выберите файл".
+.form-control::file-selector-button {
+  color: $light;
+  background-color: var(--bs-panel2, #{$secondary});
+  border-color: rgba($primary, 0.4);
+}
+
+.form-control:hover:not(:disabled)::file-selector-button {
+  background-color: var(--bs-panel, #2a1f16);
+}
+
+// Tables: ensure text is visible on the dark panel background.
+// Without data-bs-theme="dark", Bootstrap may generate light --bs-table-* vars.
+.table {
+  --bs-table-color: #{$body-color};
+  --bs-table-bg: transparent;
+  --bs-table-border-color: #{rgba($primary, 0.2)};
+  --bs-table-striped-bg: #{rgba($primary, 0.06)};
+  --bs-table-hover-bg: #{rgba($primary, 0.1)};
+
+  th {
+    color: var(--bs-muted);
+    font-weight: #{$font-weight-normal};
+    border-bottom-color: rgba($primary, 0.3);
+  }
+}
+
+/* =========================================================
+   SHARED COMPONENT STYLES
+   Defined globally so Angular's Emulated encapsulation
+   doesn't prevent them from reaching feature components.
+========================================================= */
+
+.page-title {
+  font-size: clamp(2rem, 2.5vw, 2.75rem);
+  color: #f8f1de;
+}
+
+.section-card {
+  background: rgba(255, 255, 255, 0.04);
+  border: 1px solid rgba(255, 255, 255, 0.1);
+}
+
+.card-header {
+  background: rgba(255, 255, 255, 0.03);
+  border-bottom: 1px solid rgba(255, 255, 255, 0.08);
+}
+
+.transcript-preview {
+  background: transparent;
+  border: 0;
+  color: $body-color;
+  white-space: pre-wrap;
+  margin: 0;
+}
+
+.border-white-10 {
+  border-color: rgba(255, 255, 255, 0.1) !important;
+}
+
+/* =========================================================
+   GLOBAL FORM & BUTTON OVERRIDES
+========================================================= */
+
+.form-control,
+.form-select {
+  background: #0f0d0a;
+  border-color: rgba(255, 255, 255, 0.12);
+  color: $body-color;
+  transition: $transition-base;
+}
+
+.form-control::placeholder {
+  color: rgba(232, 220, 199, 0.5);
+}
+
+.form-control:focus,
+.form-select:focus {
+  border-color: $primary;
+  box-shadow: 0 0 0 0.25rem rgba($primary, 0.15);
+  background: rgba(15, 13, 10, 0.8);
+  color: $body-color;
+}
+
+.form-label {
+  color: #f8f1de;
+  font-weight: 500;
+}
+
+.btn-primary {
+  background-color: $primary;
+  border-color: $primary;
+
+  &:hover,
+  &:focus {
+    background-color: #d4b358;
+    border-color: #d4b358;
+  }
+}
+
+/* =========================================================
    SEARCH BOX (Bootstrap panel frame)
 ========================================================= */
 

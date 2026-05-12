@@ -1,24 +1,31 @@
 import {
-	ApplicationConfig,
-	provideBrowserGlobalErrorListeners,
-} from '@angular/core';
-import { provideRouter, withRouterConfig } from '@angular/router';
-import { provideHttpClient, withFetch } from '@angular/common/http';
+  provideHttpClient,
+  withFetch,
+  withInterceptors,
+} from '@angular/common/http';
 import {
-	provideClientHydration,
-	withEventReplay,
+  type ApplicationConfig,
+  ErrorHandler,
+  provideBrowserGlobalErrorListeners,
+} from '@angular/core';
+import {
+  provideClientHydration,
+  withEventReplay,
 } from '@angular/platform-browser';
-
+import { provideRouter, withRouterConfig } from '@angular/router';
+import { GlobalErrorHandler } from '@core/global-error-handler';
+import { errorInterceptor } from '@core/interceptors/error.interceptor';
 import { routes } from './app.routes';
 
 export const appConfig: ApplicationConfig = {
-	providers: [
-		provideBrowserGlobalErrorListeners(),
-		provideRouter(
-			routes,
-			withRouterConfig({ paramsInheritanceStrategy: 'always' }),
-		),
-		provideHttpClient(withFetch()),
-		provideClientHydration(withEventReplay()),
-	],
+  providers: [
+    provideBrowserGlobalErrorListeners(),
+    provideRouter(
+      routes,
+      withRouterConfig({ paramsInheritanceStrategy: 'always' }),
+    ),
+    provideHttpClient(withFetch(), withInterceptors([errorInterceptor])),
+    provideClientHydration(withEventReplay()),
+    { provide: ErrorHandler, useClass: GlobalErrorHandler },
+  ],
 };

@@ -1,0 +1,30 @@
+# Normalize line endings to LF in the repository.
+# Git will convert to LF on commit from any platform.
+* text=auto eol=lf
+
+# Explicitly declare text files
+*.ts    text eol=lf
+*.html  text eol=lf
+*.scss  text eol=lf
+*.css   text eol=lf
+*.json  text eol=lf
+*.yaml  text eol=lf
+*.yml   text eol=lf
+*.md    text eol=lf
+*.proto text eol=lf
+*.js    text eol=lf
+*.mjs   text eol=lf
+
+# Binary files — no line ending conversion
+*.png   binary
+*.jpg   binary
+*.jpeg  binary
+*.gif   binary
+*.ico   binary
+*.woff  binary
+*.woff2 binary
+*.eot   binary
+*.ttf   binary
+*.otf   binary
+*.wav   binary
+*.mp3   binary

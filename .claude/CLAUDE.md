@@ -28,11 +28,12 @@ You are an expert in TypeScript, Angular, and scalable web application developme
 - Use `input()` and `output()` functions instead of decorators
 - Use `computed()` for derived state
 - Set `changeDetection: ChangeDetectionStrategy.OnPush` in `@Component` decorator
-- Prefer inline templates for small components
+- Always use external templates (`templateUrl`) and styles (`styleUrl`) — never inline `template:` or `styles:`
+- Every component lives in its own folder: `feature-name.component.{ts,html,scss}`
 - Prefer Reactive forms instead of Template-driven ones
 - Do NOT use `ngClass`, use `class` bindings instead
 - Do NOT use `ngStyle`, use `style` bindings instead
-- When using external templates/styles, use paths relative to the component TS file.
+- Use paths relative to the component TS file for `templateUrl`/`styleUrl`
 
 ## State Management
 
@@ -53,3 +54,9 @@ You are an expert in TypeScript, Angular, and scalable web application developme
 - Design services around a single responsibility
 - Use the `providedIn: 'root'` option for singleton services
 - Use the `inject()` function instead of constructor injection
+
+## Build Budget Notes
+
+- `angular.json` has `maximumWarning: 600kB` for the initial bundle (default is 500kB).
+  Reason: Bootstrap 5 CSS + Angular SSR adds ~90 kB over the default threshold.
+  This is intentional and should not be lowered without first reducing Bootstrap usage.

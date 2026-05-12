@@ -1,0 +1,174 @@
+<app-page-header
+  title="Localization files"
+  subtitle="Translate all string values in a JSON i18n file, preserving key structure."
+/>
+
+<div class="card section-card mb-4">
+  <div class="card-body">
+    <form [formGroup]="form" (ngSubmit)="submit()">
+      <div class="row g-3 mb-3">
+        @if (isNative()) {
+          <div class="col-md-3">
+            <label class="form-label" for="loc-src-native"
+              >Source language</label
+            >
+            <input
+              id="loc-src-native"
+              class="form-control"
+              formControlName="source_language"
+              [class.is-invalid]="
+                form.controls.source_language.invalid &&
+                form.controls.source_language.touched
+              "
+              placeholder="e.g. eng_Latn"
+            />
+            <div class="invalid-feedback">Source language is required</div>
+          </div>
+          <div class="col-md-3">
+            <label class="form-label" for="loc-tgt-native"
+              >Target language</label
+            >
+            <input
+              id="loc-tgt-native"
+              class="form-control"
+              formControlName="target_language"
+              [class.is-invalid]="
+                form.controls.target_language.invalid &&
+                form.controls.target_language.touched
+              "
+              placeholder="e.g. ukr_Cyrl"
+            />
+            <div class="invalid-feedback">Target language is required</div>
+          </div>
+        } @else {
+          <div class="col-md-3">
+            <label class="form-label" for="loc-src">Source language</label>
+            <app-language-select
+              inputId="loc-src"
+              [control]="form.controls.source_language"
+            />
+          </div>
+          <div class="col-md-3">
+            <label class="form-label" for="loc-tgt">Target language</label>
+            <app-language-select
+              inputId="loc-tgt"
+              [control]="form.controls.target_language"
+            />
+          </div>
+        }
+
+        <div class="col-md-2">
+          <label class="form-label" for="loc-model">Model</label>
+          <select id="loc-model" class="form-select" formControlName="model">
+            <option value="">Default</option>
+            @for (m of caps.availableModels(); track m) {
+              <option [value]="m">{{ m }}</option>
+            }
+          </select>
+        </div>
+        <div class="col-md-2">
+          <label class="form-label" for="loc-fmt">Language format</label>
+          <select
+            id="loc-fmt"
+            class="form-select"
+            formControlName="language_format"
+          >
+            @for (f of formats; track f.value) {
+              <option [value]="f.value">{{ f.label }}</option>
+            }
+          </select>
+        </div>
+        <div class="col-md-2 d-flex align-items-end">
+          <button
+            type="button"
+            class="btn btn-outline-secondary w-100"
+            (click)="locFileInput.click()"
+          >Upload JSON</button>
+          <input
+            #locFileInput
+            id="loc-file-upload"
+            type="file"
+            accept=".json"
+            class="visually-hidden"
+            (change)="onFileChange($event)"
+          />
+        </div>
+      </div>
+
+      <div class="mb-3">
+        <label class="form-label" for="json-src">Source JSON</label>
+        <textarea
+          id="json-src"
+          class="form-control font-monospace"
+          rows="8"
+          formControlName="json"
+          placeholder='{ "key": "value", "greeting": "Hello" }'
+        >
+        </textarea>
+      </div>
+
+      <details class="mb-3">
+        <summary class="details-toggle text-muted small">
+          Existing translation (optional — reuse already translated keys)
+        </summary>
+        <div class="mt-2">
+          <textarea
+            class="form-control font-monospace"
+            rows="4"
+            formControlName="existing_translation"
+            placeholder='{ "key": "previously translated value" }'
+          >
+          </textarea>
+        </div>
+      </details>
+
+      <div class="d-flex gap-2">
+        <app-submit-button
+          [disabled]="form.invalid"
+          [loading]="loading()"
+          label="Translate JSON"
+          loadingLabel="Translating…"
+        />
+        <button
+          type="button"
+          class="btn btn-outline-secondary"
+          (click)="clear()"
+        >
+          Clear
+        </button>
+      </div>
+    </form>
+  </div>
+</div>
+
+<app-error-alert [message]="error()" />
+
+@if (result()) {
+  <div class="card section-card">
+    <div class="card-header d-flex justify-content-between align-items-center">
+      <h3 class="h6 mb-0">Translated JSON</h3>
+      <span class="badge bg-warning text-dark">
+        {{ result()!.stringsTranslated }} strings translated
+      </span>
+    </div>
+    <div class="card-body">
+      <textarea
+        class="form-control font-monospace"
+        rows="10"
+        readonly
+        [value]="prettyResult()"
+      >
+      </textarea>
+      <div class="d-flex gap-2 mt-2">
+        <app-copy-button [text]="prettyResult()" label="Copy" />
+        <button
+          type="button"
+          class="btn btn-outline-secondary btn-sm mt-2"
+          (click)="download()"
+        >
+          Download
+        </button>
+      </div>
+    </div>
+  </div>
+}

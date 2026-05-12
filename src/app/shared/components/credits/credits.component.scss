@@ -1,0 +1,26 @@
+.credits {
+  display: flex;
+  flex-direction: column;
+  gap: 0.35rem;
+}
+
+:host .credits-link {
+  display: flex;
+  align-items: center;
+  gap: 0.4rem;
+  font-size: 0.75rem;
+  color: rgba(255, 255, 255, 0.4);
+  text-decoration: none;
+  transition: color 0.15s ease;
+
+  &:hover {
+    color: rgba(255, 255, 255, 0.75);
+    text-decoration: none;
+  }
+}
+
+.credits-icon {
+  width: 13px;
+  height: 13px;
+  flex-shrink: 0;
+}

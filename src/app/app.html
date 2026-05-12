@@ -1,37 +1,4 @@
 <main class="app-shell container-fluid px-0">
-  <style>
-    #scroll-to-top {
-      position: fixed;
-      bottom: 2rem;
-      right: 2rem;
-      width: 3rem;
-      height: 3rem;
-      background: #c9a24a;
-      color: #070603;
-      border: none;
-      border-radius: 50%;
-      cursor: pointer;
-      display: none;
-      align-items: center;
-      justify-content: center;
-      font-size: 1.5rem;
-      z-index: 999;
-      opacity: 0;
-      transition: all 0.3s ease;
-      box-shadow: 0 4px 12px rgba(201, 162, 74, 0.3);
-      font-weight: bold;
-    }
-    #scroll-to-top.show { display: flex; opacity: 1; }
-    #scroll-to-top:hover {
-      background: #d4b358;
-      transform: translateY(-4px);
-      box-shadow: 0 6px 16px rgba(201, 162, 74, 0.4);
-    }
-    @media (max-width: 991px) {
-      #scroll-to-top { bottom: 1rem; right: 1rem; }
-    }
-  </style>
-
   <div class="row gx-0">
     <!-- Sidebar -->
     <aside class="sidebar col-auto d-flex flex-column p-4 text-white">
@@ -78,12 +45,25 @@
       </nav>
 
       <div class="mt-auto pt-3 border-top border-white-10">
-        <div class="small text-muted">gRPC: localhost:5100</div>
+        <div class="small text-muted mb-3">gRPC: localhost:5100</div>
+        <app-credits />
       </div>
     </aside>
 
     <!-- Main content -->
     <section class="main-content col">
+      @if (appError.message()) {
+        <div class="alert alert-warning alert-dismissible d-flex align-items-start gap-2 rounded-0 mb-0"
+             role="alert">
+          <span aria-hidden="true">⚠</span>
+          <div class="flex-grow-1">
+            <strong>Unexpected error</strong><br>
+            <span class="small">{{ appError.message() }}</span>
+          </div>
+          <button type="button" class="btn-close" aria-label="Dismiss"
+                  (click)="appError.clear()"></button>
+        </div>
+      }
       <div class="container-fluid py-4">
         <router-outlet />
       </div>
