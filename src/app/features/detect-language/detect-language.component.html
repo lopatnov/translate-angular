@@ -53,13 +53,12 @@
             <div class="text-muted small mb-1">
               Confidence: {{ (result()!.probability * 100).toFixed(1) }}%
             </div>
-            <div class="progress confidence-bar" role="progressbar"
-                 [attr.aria-valuenow]="result()!.probability * 100"
-                 aria-valuemin="0" aria-valuemax="100">
-              <div class="progress-bar bg-warning"
-                   [style.width.%]="result()!.probability * 100">
-              </div>
-            </div>
+            <progress
+              class="confidence-bar w-100"
+              [value]="result()!.probability * 100"
+              max="100">
+              {{ (result()!.probability * 100).toFixed(1) }}%
+            </progress>
           </div>
         }
       </div>

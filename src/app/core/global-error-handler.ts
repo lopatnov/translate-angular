@@ -15,12 +15,14 @@ export class GlobalErrorHandler implements ErrorHandler {
 		// Always log to console — preserves stack trace for debugging.
 		console.error('[Uncaught error]', error);
 
-		const message =
-			error instanceof Error
-				? error.message
-				: typeof error === 'string'
-					? error
-					: 'An unexpected error occurred.';
+		let message: string;
+		if (error instanceof Error) {
+			message = error.message;
+		} else if (typeof error === 'string') {
+			message = error;
+		} else {
+			message = 'An unexpected error occurred.';
+		}
 
 		this.appError.set(message);
 	}

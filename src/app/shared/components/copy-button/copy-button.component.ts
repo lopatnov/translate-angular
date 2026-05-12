@@ -21,23 +21,10 @@ export class CopyButtonComponent {
 	readonly label = input('Copy to clipboard');
 
 	protected async copy(): Promise<void> {
-		const text = this.text();
 		try {
-			await navigator.clipboard.writeText(text);
-		} catch {
-			// Fallback for browsers without Clipboard API permission.
-			const textarea = document.createElement('textarea');
-			textarea.value = text;
-			textarea.style.cssText = 'position:fixed;opacity:0;pointer-events:none';
-			document.body.appendChild(textarea);
-			textarea.select();
-			try {
-				document.execCommand('copy');
-			} catch (fallbackErr) {
-				console.error('[CopyButton] clipboard write failed', fallbackErr);
-			} finally {
-				document.body.removeChild(textarea);
-			}
+			await navigator.clipboard.writeText(this.text());
+		} catch (err) {
+			console.error('[CopyButton] clipboard write failed', err);
 		}
 	}
 }

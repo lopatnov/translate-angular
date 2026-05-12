@@ -79,13 +79,11 @@
           </select>
         </div>
         <div class="col-md-2 d-flex align-items-end">
-          <label
-            for="loc-file-upload"
+          <button
+            type="button"
             class="btn btn-outline-secondary w-100"
-            tabindex="0"
-            (keydown.enter)="locFileInput.click()"
-            (keydown.space)="$event.preventDefault(); locFileInput.click()"
-          >Upload JSON</label>
+            (click)="locFileInput.click()"
+          >Upload JSON</button>
           <input
             #locFileInput
             id="loc-file-upload"

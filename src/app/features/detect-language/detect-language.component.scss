@@ -1,3 +1,22 @@
-.confidence-bar {
+progress.confidence-bar {
+  display: block;
   height: 12px;
+  border: none;
+  border-radius: 0.25rem;
+  appearance: none;
+
+  &::-webkit-progress-bar {
+    background: rgba(255, 255, 255, 0.1);
+    border-radius: 0.25rem;
+  }
+
+  &::-webkit-progress-value {
+    background: #c9a24a;
+    border-radius: 0.25rem;
+  }
+
+  &::-moz-progress-bar {
+    background: #c9a24a;
+    border-radius: 0.25rem;
+  }
 }
