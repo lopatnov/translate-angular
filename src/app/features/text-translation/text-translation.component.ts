@@ -47,6 +47,7 @@ export class TextTranslationComponent {
     source_language: ['auto'],
     target_language: ['en'],
     model: [''],
+    context: [''],
     language_format: ['bcp47'],
   });
 
@@ -74,7 +75,7 @@ export class TextTranslationComponent {
     this.error.set(null);
     this.result.set(null);
 
-    const { text, source_language, target_language, model, language_format } =
+    const { text, source_language, target_language, model, context, language_format } =
       this.form.getRawValue();
 
     this.api
@@ -83,6 +84,7 @@ export class TextTranslationComponent {
         source_language,
         target_language,
         model: model || undefined,
+        context: context || undefined,
         language_format,
       })
       .subscribe({

@@ -66,7 +66,7 @@ export function createApiRouter(): Router {
   });
 
   router.post('/translate', async (req, res) => {
-    const { text, source_language, target_language, model, language_format } =
+    const { text, source_language, target_language, model, context, language_format } =
       req.body as TranslateRequest;
     if (!text || !target_language) {
       res.status(400).json({ error: 'text and target_language are required' });
@@ -79,7 +79,7 @@ export function createApiRouter(): Router {
           sourceLanguage: source_language ?? '',
           targetLanguage: target_language,
           model: model ?? '',
-          context: '',
+          context: context ?? '',
           languageFormat: language_format ?? 'bcp47',
         }),
       );

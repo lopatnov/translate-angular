@@ -100,6 +100,18 @@
         ></textarea>
       </div>
 
+      <details class="mb-3">
+        <summary class="text-muted small" style="cursor:pointer">Context hint (optional)</summary>
+        <div class="mt-2">
+          <textarea
+            class="form-control form-control-sm"
+            rows="2"
+            formControlName="context"
+            placeholder="Optional free-form context for the translation (used by LLM-based models)…"
+          ></textarea>
+        </div>
+      </details>
+
       <div class="d-flex gap-2">
         <app-submit-button
           [disabled]="form.invalid"

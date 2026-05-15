@@ -19,6 +19,7 @@ export interface TranslateRequest {
   source_language?: string;
   target_language: string;
   model?: string;
+  context?: string;
   language_format?: string;
 }
 
