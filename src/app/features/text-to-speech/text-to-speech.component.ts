@@ -39,7 +39,7 @@ export class TextToSpeechComponent {
     text:            ['', Validators.required],
     language:        [''],
     voice:           [''],
-    speed:           [1.0],
+    speed:           [0.85],
     language_format: ['bcp47'],
   });
 
@@ -93,7 +93,7 @@ export class TextToSpeechComponent {
     const prev = this.audioUrl();
     if (prev) URL.revokeObjectURL(prev);
 
-    this.form.reset({ text: '', language: '', voice: '', speed: 1.0, language_format: 'bcp47' });
+    this.form.reset({ text: '', language: '', voice: '', speed: 0.85, language_format: 'bcp47' });
     this.audioUrl.set(null);
     this.sampleRate.set(null);
     this.error.set(null);
