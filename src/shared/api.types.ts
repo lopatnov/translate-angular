@@ -83,6 +83,21 @@ export interface SynthesizeResponse {
   sample_rate: number;
 }
 
+export interface TranslateAudioRequest {
+  audio_data_base64: string;
+  source_language?: string;
+  target_language: string;
+  target_voice?: string;
+  language_format?: string;
+}
+
+export interface TranslateAudioResponse {
+  transcription: string;
+  translated_text: string;
+  audio_data_base64: string;
+  sample_rate: number;
+}
+
 export interface ApiError {
   error: string;
 }

@@ -43,4 +43,11 @@ export const routes: Routes = [
         (m) => m.TextToSpeechComponent,
       ),
   },
+  {
+    path: 'translate-audio',
+    loadComponent: () =>
+      import('./features/speech-to-speech/speech-to-speech.component').then(
+        (m) => m.SpeechToSpeechComponent,
+      ),
+  },
 ];

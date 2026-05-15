@@ -4,6 +4,7 @@ import type {
   LocalizeRequest,
   SynthesizeRequest,
   TranscribeRequest,
+  TranslateAudioRequest,
   TranslateRequest,
 } from '@shared/api.types';
 import { Router } from 'express';
@@ -13,6 +14,7 @@ import {
   grpcUrl,
   synthesizeSpeech,
   transcribeAudio,
+  translateAudio,
   translateLocalization,
   translateText,
 } from './grpc-client';
@@ -163,6 +165,38 @@ export function createApiRouter(): Router {
           languageFormat: language_format ?? 'bcp47',
         }),
       );
+    } catch (err) {
+      res.status(grpcErrorToHttpStatus(err)).json({ error: errorMessage(err) });
+    }
+  });
+
+  router.post('/translate-audio', async (req, res) => {
+    const { audio_data_base64, source_language, target_language, target_voice, language_format } =
+      req.body as TranslateAudioRequest;
+    if (!audio_data_base64 || !target_language) {
+      res.status(400).json({ error: 'audio_data_base64 and target_language are required' });
+      return;
+    }
+    try {
+      if (typeof audio_data_base64 !== 'string') {
+        res.status(400).json({ error: 'audio_data_base64 must be a string' });
+        return;
+      }
+      const buf = Buffer.from(audio_data_base64, 'base64');
+      const result = await translateAudio({
+        audioData:      buf,
+        sourceLanguage: source_language ?? 'auto',
+        targetLanguage: target_language,
+        audioFormat:    '',
+        targetVoice:    target_voice ?? '',
+        languageFormat: language_format ?? 'bcp47',
+      });
+      res.json({
+        transcription:     result.transcription,
+        translated_text:   result.translatedText,
+        audio_data_base64: Buffer.from(result.translatedAudio).toString('base64'),
+        sample_rate:       result.sampleRate,
+      });
     } catch (err) {
       res.status(grpcErrorToHttpStatus(err)).json({ error: errorMessage(err) });
     }
