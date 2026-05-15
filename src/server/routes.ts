@@ -2,6 +2,7 @@ import { status as GrpcStatus } from '@grpc/grpc-js';
 import type {
   DetectRequest,
   LocalizeRequest,
+  SynthesizeRequest,
   TranscribeRequest,
   TranslateRequest,
 } from '@shared/api.types';
@@ -10,6 +11,7 @@ import {
   detectLanguage,
   getCapabilities,
   grpcUrl,
+  synthesizeSpeech,
   transcribeAudio,
   translateLocalization,
   translateText,
@@ -161,6 +163,28 @@ export function createApiRouter(): Router {
           languageFormat: language_format ?? 'bcp47',
         }),
       );
+    } catch (err) {
+      res.status(grpcErrorToHttpStatus(err)).json({ error: errorMessage(err) });
+    }
+  });
+
+  router.post('/synthesize', async (req, res) => {
+    const { text, language, voice, speed, language_format } =
+      req.body as SynthesizeRequest;
+    if (!text) {
+      res.status(400).json({ error: 'text is required' });
+      return;
+    }
+    try {
+      const result = await synthesizeSpeech({
+        text,
+        language: language ?? '',
+        voice: voice ?? '',
+        speed: speed ?? 1.0,
+        languageFormat: language_format ?? 'bcp47',
+      });
+      const audio_data_base64 = Buffer.from(result.audioData).toString('base64');
+      res.json({ audio_data_base64, sample_rate: result.sampleRate });
     } catch (err) {
       res.status(grpcErrorToHttpStatus(err)).json({ error: errorMessage(err) });
     }

@@ -36,4 +36,11 @@ export const routes: Routes = [
         (m) => m.SpeechToTextComponent,
       ),
   },
+  {
+    path: 'synthesize',
+    loadComponent: () =>
+      import('./features/text-to-speech/text-to-speech.component').then(
+        (m) => m.TextToSpeechComponent,
+      ),
+  },
 ];

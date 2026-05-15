@@ -6,6 +6,8 @@ import type {
   DetectResponse,
   LocalizeRequest,
   LocalizeResponse,
+  SynthesizeRequest,
+  SynthesizeResponse,
   TranscribeRequest,
   TranscribeResponse,
   TranslateRequest,
@@ -31,6 +33,10 @@ export class TranslateApiService {
 
   localize(req: LocalizeRequest): Observable<LocalizeResponse> {
     return this.http.post<LocalizeResponse>('/api/localize', req);
+  }
+
+  synthesize(req: SynthesizeRequest): Observable<SynthesizeResponse> {
+    return this.http.post<SynthesizeResponse>('/api/synthesize', req);
   }
 
   /**

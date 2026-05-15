@@ -42,6 +42,14 @@
            aria-label="Speech to text">
           <span aria-hidden="true">🎙</span> Speech to text
         </a>
+        @if (caps.ttsAvailable()) {
+          <a class="nav-link"
+             routerLink="/synthesize"
+             routerLinkActive="active"
+             aria-label="Text to speech">
+            <span aria-hidden="true">🔊</span> Text to speech
+          </a>
+        }
       </nav>
 
       <div class="mt-auto pt-3 border-top border-white-10">

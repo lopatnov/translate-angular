@@ -6,6 +6,8 @@ import type {
   GetCapabilitiesRequest,
   GetCapabilitiesResponse,
   TranslateServiceClient as ITranslateServiceClient,
+  SynthesizeSpeechRequest,
+  SynthesizeSpeechResponse,
   TranscribeAudioRequest,
   TranscribeAudioResponse,
   TranslateLocalizationRequest,
@@ -104,6 +106,13 @@ export function transcribeAudio(
     req,
     TRANSCRIBE_DEADLINE_MS,
   );
+}
+
+export function synthesizeSpeech(
+  req: SynthesizeSpeechRequest,
+): Promise<SynthesizeSpeechResponse> {
+  // biome-ignore lint/suspicious/noExplicitAny: grpc-js method overloads require cast
+  return call(getClient().synthesizeSpeech.bind(getClient()) as any, req);
 }
 
 export function grpcUrl(): string {

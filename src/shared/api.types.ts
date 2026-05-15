@@ -70,6 +70,19 @@ export interface TranscribeResponse {
   segments: TranscriptionSegment[];
 }
 
+export interface SynthesizeRequest {
+  text: string;
+  language?: string;
+  voice?: string;
+  speed?: number;
+  language_format?: string;
+}
+
+export interface SynthesizeResponse {
+  audio_data_base64: string;
+  sample_rate: number;
+}
+
 export interface ApiError {
   error: string;
 }
