@@ -4,6 +4,7 @@
 
 [![CI](https://github.com/lopatnov/translate-angular/actions/workflows/ci.yml/badge.svg)](https://github.com/lopatnov/translate-angular/actions/workflows/ci.yml)
 [![npm](https://img.shields.io/npm/v/@lopatnov/translate-angular)](https://www.npmjs.com/package/@lopatnov/translate-angular)
+[![Docker](https://ghcr-badge.egpl.dev/lopatnov/translate-angular/latest_tag?label=ghcr.io)](https://github.com/lopatnov/translate-angular/pkgs/container/translate-angular)
 [![License: Apache 2.0](https://img.shields.io/badge/License-Apache%202.0-blue.svg)](LICENSE)
 [![GitHub issues](https://img.shields.io/github/issues/lopatnov/translate-angular)](https://github.com/lopatnov/translate-angular/issues)
 [![GitHub stars](https://img.shields.io/github/stars/lopatnov/translate-angular?style=social)](https://github.com/lopatnov/translate-angular/stargazers)
@@ -11,21 +12,25 @@
 Exercises every gRPC endpoint of Lopatnov.Translate through a clean web interface — no `grpcurl` commands needed.
 
 ```txt
-Browser → Angular (port 4200) → Express SSR → @grpc/grpc-js → gRPC service (port 5100)
+Browser → Angular (port 4000) → Express SSR → @grpc/grpc-js → gRPC service (port 5100)
 ```
+
+> **Requires** the [Lopatnov.Translate](https://github.com/lopatnov/translate) gRPC service running on `localhost:5100` (or set `TRANSLATE_GRPC_URL`).
 
 ---
 
 ## Table of Contents
 
 - [Pages](#pages)
-- [Prerequisites](#prerequisites)
 - [Getting Started](#getting-started)
+  - [Docker](#docker)
+  - [npm](#npm)
+  - [Development](#development)
+- [Environment Variables](#environment-variables)
 - [npm Scripts](#npm-scripts)
 - [Architecture](#architecture)
 - [Debugging](#debugging-vs-code--cursor)
 - [End-to-End Tests](#end-to-end-tests)
-- [Environment Variables](#environment-variables)
 - [Project Structure](#project-structure)
 - [Built With](#built-with)
 - [Contributing](#contributing)
@@ -45,35 +50,76 @@ Browser → Angular (port 4200) → Express SSR → @grpc/grpc-js → gRPC servi
 
 ---
 
-## Prerequisites
-
-| Tool               | Version | Notes                                                       |
-| ------------------ | ------- | ----------------------------------------------------------- |
-| Node.js            | 20 LTS+ |                                                             |
-| npm                | 11+     |                                                             |
-| Angular CLI        | 21      | `npm i -g @angular/cli`                                     |
-| buf CLI            | 1.x     | Required only to regenerate gRPC client after proto changes |
-| Lopatnov.Translate | running | Default: `localhost:5100`                                   |
-
----
-
 ## Getting Started
+
+### Docker
+
+The quickest way — no Node.js required.
+
+```bash
+docker run -p 4000:4000 \
+  -e TRANSLATE_GRPC_URL=host.docker.internal:5100 \
+  ghcr.io/lopatnov/translate-angular:latest
+```
+
+Open **http://localhost:4000**.
+
+With Docker Compose alongside the gRPC service:
+
+```yaml
+services:
+  translate-studio:
+    image: ghcr.io/lopatnov/translate-angular:latest
+    ports:
+      - "4000:4000"
+    environment:
+      TRANSLATE_GRPC_URL: translate:5100
+    depends_on:
+      - translate
+
+  translate:
+    image: ghcr.io/lopatnov/translate:latest
+    ports:
+      - "5100:5100"
+```
+
+### npm
+
+Install globally and run as a CLI:
+
+```bash
+npm install -g @lopatnov/translate-angular
+TRANSLATE_GRPC_URL=localhost:5100 translate-studio
+```
+
+Open **http://localhost:4000**.
+
+### Development
+
+Clone and run the dev server with hot module replacement:
 
 ```bash
 git clone https://github.com/lopatnov/translate-angular.git
 cd translate-angular
-cp .env .env.local          # adjust if your gRPC service runs on a different host
 npm install
-npm start
+npm start          # dev server on port 4200
 ```
-
-Open **http://localhost:4200** — the Dashboard will show service status if the gRPC service is reachable.
 
 To point at a different gRPC host:
 
 ```bash
 TRANSLATE_GRPC_URL=my-server:5100 npm start
 ```
+
+---
+
+## Environment Variables
+
+| Variable                 | Default          | Description                                            |
+| ------------------------ | ---------------- | ------------------------------------------------------ |
+| `TRANSLATE_GRPC_URL`     | `localhost:5100` | gRPC service address                                   |
+| `PORT`                   | `4000`           | HTTP server port                                       |
+| `TRANSCRIBE_DEADLINE_MS` | `120000`         | gRPC deadline for TranscribeAudio calls (milliseconds) |
 
 ---
 
@@ -99,16 +145,15 @@ TRANSLATE_GRPC_URL=my-server:5100 npm start
 
 ```txt
 Browser
-  └─► ng serve (4200)
-        └─► Express (server.ts)
-              └─► Router (server/routes.ts)
-                    ├─ GET /api/capabilities   ─► getCapabilities()
-                    ├─ POST /api/translate     ─► translateText()
-                    ├─ POST /api/detect        ─► detectLanguage()
-                    ├─ POST /api/localize      ─► translateLocalization()
-                    └─ POST /api/transcribe    ─► transcribeAudio()
-                                                     └─► @grpc/grpc-js → localhost:5100
-                                                           (30 s deadline; 120 s for transcribe)
+  └─► Express SSR (4000)
+        └─► Router (server/routes.ts)
+              ├─ GET /api/capabilities   ─► getCapabilities()
+              ├─ POST /api/translate     ─► translateText()
+              ├─ POST /api/detect        ─► detectLanguage()
+              ├─ POST /api/localize      ─► translateLocalization()
+              └─ POST /api/transcribe    ─► transcribeAudio()
+                                               └─► @grpc/grpc-js → localhost:5100
+                                                     (30 s deadline; 120 s for transcribe)
 ```
 
 ### gRPC client (generated)
@@ -119,7 +164,6 @@ The TypeScript gRPC client is generated from `src/protos/translate.proto` using 
 npm run generate        # runs: buf generate
 ```
 
-Generated output lands in **`src/server/generated/translate.ts`** (gitignored — always regenerate locally).  
 After updating `translate.proto`, run `npm run generate` and the TypeScript compiler will surface any breaking changes immediately.
 
 ---
@@ -160,16 +204,6 @@ Tests do **not** require the gRPC service to be running — they validate UI str
 
 ---
 
-## Environment Variables
-
-| Variable                | Default          | Description                                              |
-| ----------------------- | ---------------- | -------------------------------------------------------- |
-| `TRANSLATE_GRPC_URL`    | `localhost:5100` | gRPC service address                                     |
-| `PORT`                  | `4000`           | SSR server port (production / debug mode only)           |
-| `TRANSCRIBE_DEADLINE_MS`| `120000`         | gRPC deadline for TranscribeAudio calls (milliseconds)   |
-
----
-
 ## Project Structure
 
 ```txt
@@ -178,12 +212,12 @@ src/
 │   └── translate.proto              # Source of truth for gRPC contract
 ├── server/
 │   ├── generated/
-│   │   └── translate.ts             # ← generated by buf (gitignored)
+│   │   └── translate.ts             # ← generated by buf
 │   ├── grpc-client.ts               # Singleton gRPC client, Promise API
 │   └── routes.ts                    # Express Router — /api/* → gRPC
 ├── server.ts                        # Express entry: middleware, SSR handler
 ├── shared/
-│   └── api.types.ts                 # Request/response interfaces (shared by server + client)
+│   └── api.types.ts                 # Request/response interfaces (server + client)
 └── app/
     ├── core/
     │   ├── interceptors/
@@ -202,14 +236,13 @@ src/
     │   ├── locale-files/            # TranslateLocalization → JSON i18n translation
     │   ├── speech-to-text/          # TranscribeAudio → transcript + segments
     │   └── text-translation/        # TranslateText → translated text
-    ├── shared/
-    │   └── components/
-    │       ├── copy-button/         # Clipboard copy with execCommand fallback
-    │       ├── credits/             # GitHub + LinkedIn links
-    │       ├── error-alert/         # Dismissible error banner
-    │       ├── language-select/     # Searchable datalist input (183 languages)
-    │       ├── page-header/         # Page title + subtitle
-    │       └── submit-button/       # Loading-aware submit button
+    ├── shared/components/
+    │   ├── copy-button/             # Clipboard copy
+    │   ├── credits/                 # GitHub + LinkedIn links
+    │   ├── error-alert/             # Dismissible error banner
+    │   ├── language-select/         # Searchable datalist (183 languages)
+    │   ├── page-header/             # Page title + subtitle
+    │   └── submit-button/           # Loading-aware submit button
     ├── app.ts / app.html / app.scss # Shell: sidebar nav + router outlet
     ├── app.routes.ts                # Lazy-loaded feature routes
     └── app.config.ts
@@ -228,6 +261,7 @@ src/
 | Code gen  | [buf CLI](https://buf.build) + [ts-proto](https://github.com/stephenh/ts-proto) 2.x |
 | Linting   | [Biome](https://biomejs.dev) 2.x                 |
 | Testing   | [Playwright](https://playwright.dev) 1.x         |
+| Container | Docker · [GHCR](https://github.com/lopatnov/translate-angular/pkgs/container/translate-angular) |
 
 ---
 
