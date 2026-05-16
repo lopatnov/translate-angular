@@ -37,6 +37,12 @@ test.describe('Speech to text', () => {
     ).toBeDisabled();
   });
 
+  test('Record button is present', async ({ page }) => {
+    await expect(
+      page.getByRole('button', { name: /record/i }),
+    ).toBeVisible();
+  });
+
   test('Clear button is present', async ({ page }) => {
     await expect(page.getByRole('button', { name: 'Clear' })).toBeVisible();
   });

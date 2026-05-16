@@ -10,7 +10,46 @@
           <label class="form-label" for="audio-file">Audio file (.wav)</label>
           <input id="audio-file" type="file" accept=".wav" class="form-control"
                  (change)="onFileChange($event)"
+                 [disabled]="recorder.state() === 'recording'"
                  aria-describedby="audio-hint">
+
+          <!-- Record / Stop controls -->
+          <div class="mt-2 d-flex align-items-center gap-2">
+            @if (recorder.state() === 'recording') {
+              <span class="recording-dot" aria-hidden="true"></span>
+              <button type="button" class="btn btn-sm btn-danger"
+                      (click)="stopRecording()"
+                      aria-label="Stop recording">
+                ⏹ Stop ({{ recorder.elapsedSeconds() }}s)
+              </button>
+            } @else {
+              <button type="button" class="btn btn-sm btn-outline-secondary"
+                      (click)="startRecording()"
+                      [disabled]="recorder.state() === 'recording'"
+                      aria-label="Record from microphone">
+                🎙 Record
+              </button>
+            }
+          </div>
+
+          <!-- Recording state announcements for screen readers -->
+          <div aria-live="polite" aria-atomic="true" class="visually-hidden">
+            @if (recorder.state() === 'recording') {
+              Recording in progress, {{ recorder.elapsedSeconds() }} seconds elapsed.
+            }
+          </div>
+
+          @if (recorder.errorMessage()) {
+            <div class="text-danger small mt-1" role="alert">
+              {{ recorder.errorMessage() }}
+              <button type="button" class="btn btn-link btn-sm p-0 ms-1 text-danger"
+                      (click)="recorder.resetError()"
+                      aria-label="Dismiss microphone error">
+                Dismiss
+              </button>
+            </div>
+          }
+
           <div id="audio-hint" class="form-text">Only WAV format is supported.</div>
         </div>
 
@@ -40,7 +79,7 @@
 
       <div class="d-flex gap-2">
         <app-submit-button
-          [disabled]="!selectedFile() || form.invalid"
+          [disabled]="!selectedFile() || form.invalid || recorder.state() === 'recording'"
           [loading]="loading()"
           label="Transcribe"
           loadingLabel="Transcribing…" />
