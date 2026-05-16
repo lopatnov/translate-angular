@@ -17,11 +17,11 @@ test.describe('Speech to text', () => {
     await expect(input).toHaveAttribute('accept', '.wav');
   });
 
-  test('language select includes Auto-detect option', async ({ page }) => {
-    const select = page.locator('#stt-lang');
-    await expect(select).toBeVisible();
+  test('language input includes Auto-detect datalist option', async ({ page }) => {
+    // Language select renders as <input type="search"> + <datalist id="stt-lang-list">.
+    await expect(page.locator('#stt-lang')).toBeVisible();
     await expect(
-      select.locator('option', { hasText: 'Auto-detect' }),
+      page.locator('#stt-lang-list option', { hasText: 'Auto-detect' }),
     ).toBeAttached();
   });
 

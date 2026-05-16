@@ -23,10 +23,10 @@ test.describe('Text to speech', () => {
     await expect(page.locator('#tts-voice')).toBeVisible();
   });
 
-  test('speed range is present with default value 1', async ({ page }) => {
+  test('speed range is present with default value 0.85', async ({ page }) => {
     const range = page.locator('#tts-speed');
     await expect(range).toBeVisible();
-    await expect(range).toHaveValue('1');
+    await expect(range).toHaveValue('0.85');
   });
 
   test('Synthesize button is disabled without text', async ({ page }) => {

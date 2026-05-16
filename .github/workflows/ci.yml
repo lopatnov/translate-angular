@@ -14,7 +14,7 @@ jobs:
   ci:
     name: Lint, Build & Test
     runs-on: ubuntu-latest
-    timeout-minutes: 10
+    timeout-minutes: 20
 
     steps:
       - name: Checkout
@@ -35,5 +35,19 @@ jobs:
       - name: Build
         run: npm run build
 
-      # E2E tests require the Lopatnov.Translate gRPC service (localhost:5100).
-      # They are not run in CI — execute locally with: npm run e2e
+      - name: Install Playwright browsers
+        run: npx playwright install --with-deps chromium
+
+      - name: E2E tests
+        run: npm run e2e -- --project=chromium
+        # All e2e specs test only UI behaviour (form state, headings, selectors).
+        # None of them submit forms or call the gRPC backend, so they are safe
+        # to run in CI without a running Lopatnov.Translate service.
+
+      - name: Upload Playwright report
+        if: failure()
+        uses: actions/upload-artifact@v4
+        with:
+          name: playwright-report
+          path: playwright-report/
+          retention-days: 7

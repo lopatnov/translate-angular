@@ -11,11 +11,11 @@ test.describe('Text translation', () => {
     ).toBeVisible();
   });
 
-  test('source language select includes Auto-detect', async ({ page }) => {
-    const select = page.locator('#src-lang');
-    await expect(select).toBeVisible();
+  test('source language input includes Auto-detect datalist option', async ({ page }) => {
+    // Language select renders as <input type="search"> + <datalist id="src-lang-list">.
+    await expect(page.locator('#src-lang')).toBeVisible();
     await expect(
-      select.locator('option', { hasText: 'Auto-detect' }),
+      page.locator('#src-lang-list option', { hasText: 'Auto-detect' }),
     ).toBeAttached();
   });
 
