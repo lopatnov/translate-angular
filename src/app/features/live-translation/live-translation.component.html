@@ -1,0 +1,167 @@
+<app-page-header
+  title="Live translation"
+  subtitle="Speak into your microphone — each phrase is transcribed and translated in real time." />
+
+<!-- ── Settings (only shown when idle) ───────────────────────────── -->
+@if (vad.state() === 'idle' || vad.state() === 'error') {
+  <div class="card section-card mb-4">
+    <div class="card-header">
+      <h3 class="h6 mb-0">Settings</h3>
+    </div>
+    <div class="card-body">
+      <form [formGroup]="form">
+        <div class="row g-3">
+          <div class="col-md-4">
+            <label class="form-label" for="live-src">Source language hint</label>
+            <app-language-select
+              inputId="live-src"
+              [control]="form.controls.source_language"
+              [includeAuto]="true"
+              ariaLabel="Source language hint for speech recognition" />
+            <div class="form-text">Empty = auto-detect (Whisper).</div>
+          </div>
+
+          <div class="col-md-4">
+            <label class="form-label" for="live-tgt">Target language</label>
+            <app-language-select
+              inputId="live-tgt"
+              [control]="form.controls.target_language"
+              ariaLabel="Target language for translation" />
+          </div>
+
+          <div class="col-md-2">
+            <label class="form-label" for="live-model">Model</label>
+            <select id="live-model" class="form-select" formControlName="model">
+              <option value="">Default</option>
+              @for (m of caps.availableModels(); track m) {
+                <option [value]="m">{{ m }}</option>
+              }
+            </select>
+          </div>
+
+          <div class="col-md-2">
+            <label class="form-label" for="live-sens">Sensitivity</label>
+            <select id="live-sens" class="form-select" formControlName="sensitivity">
+              @for (opt of sensitivityOptions; track opt[0]) {
+                <option [value]="opt[0]">{{ opt[1] }}</option>
+              }
+            </select>
+          </div>
+        </div>
+      </form>
+    </div>
+  </div>
+}
+
+<!-- ── Controls + status bar ─────────────────────────────────────── -->
+<div class="d-flex flex-wrap align-items-center gap-2 mb-3">
+  @if (vad.state() === 'idle') {
+    <button type="button" class="btn btn-primary" (click)="startLive()">
+      🎙 Start
+    </button>
+  } @else if (vad.state() === 'starting') {
+    <button type="button" class="btn btn-primary" disabled aria-busy="true">
+      <span class="spinner-border spinner-border-sm me-2" aria-hidden="true"></span>
+      Starting…
+    </button>
+  } @else if (vad.state() === 'listening') {
+    <button type="button" class="btn btn-danger" (click)="stopLive()">
+      ⏹ Stop
+    </button>
+  } @else if (vad.state() === 'error') {
+    <button type="button" class="btn btn-outline-primary" (click)="startLive()">
+      🎙 Retry
+    </button>
+  }
+
+  @if (liveFeed().length > 0) {
+    <button type="button" class="btn btn-outline-secondary" (click)="clear()">
+      Clear
+    </button>
+    <button type="button" class="btn btn-outline-secondary" (click)="copyAll()"
+            [disabled]="doneCount() === 0">
+      Copy all
+    </button>
+  }
+
+  <!-- Status badges -->
+  @if (vad.state() === 'listening') {
+    <span class="badge bg-danger d-flex align-items-center gap-1 ms-1">
+      <span class="recording-dot" aria-hidden="true"></span>
+      {{ formatElapsed(elapsedSeconds()) }}
+    </span>
+    <span class="badge bg-secondary">{{ doneCount() }} segments</span>
+  }
+</div>
+
+<!-- Screen-reader announcements -->
+<div aria-live="polite" aria-atomic="true" class="visually-hidden">
+  @if (vad.state() === 'listening') { Listening. }
+  @if (vad.state() === 'idle' && elapsedSeconds() > 0) { Stopped. }
+</div>
+
+<!-- ── Microphone error ───────────────────────────────────────────── -->
+@if (vad.errorMessage()) {
+  <div class="alert alert-danger d-flex align-items-start gap-2" role="alert">
+    <span aria-hidden="true">⚠</span>
+    <div class="flex-grow-1">{{ vad.errorMessage() }}</div>
+    <button type="button" class="btn-close" aria-label="Dismiss"
+            (click)="vad.resetError()"></button>
+  </div>
+}
+
+<!-- ── Silence timeout hint ───────────────────────────────────────── -->
+@if (suggestStop()) {
+  <div class="alert alert-warning d-flex align-items-center gap-2" role="status">
+    <span aria-hidden="true">🕐</span>
+    No speech detected for 60 seconds.
+    <button type="button" class="btn btn-sm btn-warning ms-auto" (click)="stopLive()">
+      Stop recording
+    </button>
+    <button type="button" class="btn-close btn-sm" aria-label="Dismiss"
+            (click)="suggestStop.set(false)"></button>
+  </div>
+}
+
+<!-- ── Live feed ──────────────────────────────────────────────────── -->
+@if (liveFeed().length > 0) {
+  <div class="live-feed" aria-label="Live translation feed" aria-live="polite">
+    @for (seg of liveFeed(); track seg.id) {
+      <div class="live-segment" [class.live-segment--processing]="seg.status === 'processing'"
+           [class.live-segment--error]="seg.status === 'error'">
+
+        @if (seg.status === 'processing') {
+          <div class="d-flex align-items-center gap-2 text-muted">
+            <span class="spinner-border spinner-border-sm" aria-hidden="true"></span>
+            <span class="fst-italic small">Processing…</span>
+            @if (seg.original) {
+              <span class="text-body ms-2">{{ seg.original }}</span>
+            }
+          </div>
+        } @else if (seg.status === 'error') {
+          <div class="text-danger small">
+            <strong>Error:</strong> {{ seg.error }}
+            @if (seg.original) { — <em>{{ seg.original }}</em> }
+          </div>
+        } @else {
+          <div class="live-segment__row">
+            <span class="live-segment__original text-muted">{{ seg.original }}</span>
+            <span class="live-segment__arrow" aria-hidden="true">→</span>
+            <span class="live-segment__translated">{{ seg.translated }}</span>
+          </div>
+          @if (seg.detectedLanguage) {
+            <span class="badge bg-secondary live-segment__lang">{{ seg.detectedLanguage }}</span>
+          }
+        }
+
+      </div>
+    }
+  </div>
+} @else if (vad.state() === 'listening') {
+  <p class="text-muted fst-italic">Listening for speech…</p>
+} @else if (vad.state() === 'idle' && !vad.errorMessage()) {
+  <p class="text-muted small">
+    Press <strong>Start</strong> to begin. Phrases are detected automatically.
+    Requires an active <a routerLink="/">gRPC service</a> with STT enabled.
+  </p>
+}

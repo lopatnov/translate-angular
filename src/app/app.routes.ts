@@ -50,4 +50,11 @@ export const routes: Routes = [
         (m) => m.SpeechToSpeechComponent,
       ),
   },
+  {
+    path: 'live',
+    loadComponent: () =>
+      import('./features/live-translation/live-translation.component').then(
+        (m) => m.LiveTranslationComponent,
+      ),
+  },
 ];

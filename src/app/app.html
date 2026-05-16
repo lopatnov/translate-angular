@@ -58,6 +58,14 @@
             <span aria-hidden="true">⇄</span> Speech to speech
           </a>
         }
+        @if (caps.sttAvailable()) {
+          <a class="nav-link"
+             routerLink="/live"
+             routerLinkActive="active"
+             aria-label="Live translation">
+            <span aria-hidden="true">⚡</span> Live translation
+          </a>
+        }
       </nav>
 
       <div class="mt-auto pt-3 border-top border-white-10">

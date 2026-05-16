@@ -1,4 +1,37 @@
 /**
+ * Encodes a mono Float32Array of PCM samples as a 16-bit WAV file.
+ * Use this when you already have raw PCM (e.g. from an AudioWorklet).
+ */
+export function encodeWavFromPcm(pcm: Float32Array, sampleRate: number): ArrayBuffer {
+  const dataBytes = pcm.length * 2;
+  const ab = new ArrayBuffer(44 + dataBytes);
+  const view = new DataView(ab);
+  const writeAscii = (offset: number, text: string): void => {
+    for (let i = 0; i < text.length; i++) view.setUint8(offset + i, text.charCodeAt(i));
+  };
+  writeAscii(0, 'RIFF');
+  view.setUint32(4, 36 + dataBytes, true);
+  writeAscii(8, 'WAVE');
+  writeAscii(12, 'fmt ');
+  view.setUint32(16, 16, true);
+  view.setUint16(20, 1, true);
+  view.setUint16(22, 1, true);
+  view.setUint32(24, sampleRate, true);
+  view.setUint32(28, sampleRate * 2, true);
+  view.setUint16(32, 2, true);
+  view.setUint16(34, 16, true);
+  writeAscii(36, 'data');
+  view.setUint32(40, dataBytes, true);
+  let offset = 44;
+  for (let i = 0; i < pcm.length; i++) {
+    const s = Math.max(-1, Math.min(1, pcm[i]));
+    view.setInt16(offset, s < 0 ? s * 0x8000 : s * 0x7fff, true);
+    offset += 2;
+  }
+  return ab;
+}
+
+/**
  * Encodes an AudioBuffer as a 16-bit mono PCM WAV file.
  * All channels are averaged (downmixed to mono). Sample rate is preserved;
  * the backend (NAudio inside WhisperRecognizer) resamples to 16 kHz.

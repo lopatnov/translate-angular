@@ -97,6 +97,9 @@
           @if (caps.sttAvailable() && caps.ttsAvailable()) {
             <a routerLink="/translate-audio" class="btn btn-outline-secondary">Speech to speech</a>
           }
+          @if (caps.sttAvailable()) {
+            <a routerLink="/live" class="btn btn-outline-secondary">Live translation</a>
+          }
         </div>
       </div>
     </div>
