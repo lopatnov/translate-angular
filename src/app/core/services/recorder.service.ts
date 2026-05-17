@@ -50,11 +50,10 @@ export class RecorderService {
       navigator.mediaDevices
         .getUserMedia({
           audio: {
-            // Disable Chrome's automatic audio processing to prevent it from
-            // suppressing speech energy to near-zero (observed as [BLANK_AUDIO]
-            // from Whisper on Chrome while Firefox works fine).
-            // echoCancellation is intentionally left at browser default (true)
-            // for acoustic comfort; AGC and noise suppression are the culprits.
+            // Disable all Chrome audio processing. Chrome's processing pipeline
+            // (especially echoCancellation) can zero out the signal in certain
+            // hardware configurations, resulting in [BLANK_AUDIO] from Whisper.
+            echoCancellation: false,
             noiseSuppression: false,
             autoGainControl: false,
           },
