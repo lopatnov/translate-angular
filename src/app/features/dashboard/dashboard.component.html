@@ -13,7 +13,7 @@
 @if (caps.error()) {
   <div class="alert alert-danger" role="alert">
     <strong>Cannot reach gRPC service.</strong> {{ caps.error() }}<br>
-    <small class="text-muted">
+    <small>
       Make sure the service is running on <code class="text-reset">localhost:5100</code>.
     </small>
     <div class="mt-2">
