@@ -29,8 +29,14 @@ jobs:
       - name: Install dependencies
         run: npm ci
 
-      - name: Lint
+      - name: Lint (Biome — TS/JS)
         run: npm run check
+
+      - name: Lint (Angular ESLint — HTML templates)
+        run: npm run lint:templates
+
+      - name: Lint (Stylelint — SCSS)
+        run: npm run lint:styles
 
       - name: Build
         run: npm run build
