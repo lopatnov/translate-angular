@@ -9,6 +9,8 @@ import type {
 } from '@shared/api.types';
 import { Router } from 'express';
 import {
+  TRANSLATE_DEADLINE_MS,
+  TRANSCRIBE_DEADLINE_MS,
   detectLanguage,
   getCapabilities,
   grpcUrl,

@@ -249,7 +249,10 @@ export class LiveTranslationComponent {
           const cleanup = (): void => {
             URL.revokeObjectURL(url);
             this.ttsState.set('idle');
-            this.vad.suppress(false);
+            // Delay releasing suppression by longer than VAD silence-padding (400 ms)
+            // so the VAD's emitAndReset() fires while suppress is still true and
+            // discards any TTS audio that was picked up by the microphone.
+            setTimeout(() => this.vad.suppress(false), 600);
           };
           audio.addEventListener('ended', cleanup, { once: true });
           audio.addEventListener('error', cleanup, { once: true });

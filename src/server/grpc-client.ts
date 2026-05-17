@@ -30,11 +30,23 @@ const GRPC_URL = process.env['TRANSLATE_GRPC_URL'] ?? 'localhost:5100';
 const DEADLINE_MS = 30_000;
 
 /**
+ * Per-operation deadline for TranslateText — CPU inference can take 20-60 s
+ * on large models; additionally, the SemaphoreSlim in M2M100/NLLB serialises
+ * concurrent requests so the second request must wait for the first.
+ * Override with TRANSLATE_DEADLINE_MS env var (milliseconds).
+ */
+const _rawTranslateDeadline = Number(process.env['TRANSLATE_DEADLINE_MS']);
+export const TRANSLATE_DEADLINE_MS =
+  Number.isFinite(_rawTranslateDeadline) && _rawTranslateDeadline > 0
+    ? _rawTranslateDeadline
+    : 120_000;
+
+/**
  * Per-operation deadline for TranscribeAudio — audio processing takes longer.
  * Override with TRANSCRIBE_DEADLINE_MS env var (milliseconds).
  */
 const _rawTranscribeDeadline = Number(process.env['TRANSCRIBE_DEADLINE_MS']);
-const TRANSCRIBE_DEADLINE_MS =
+export const TRANSCRIBE_DEADLINE_MS =
   Number.isFinite(_rawTranscribeDeadline) && _rawTranscribeDeadline > 0
     ? _rawTranscribeDeadline
     : 120_000;
@@ -82,7 +94,7 @@ export function translateText(
   req: TranslateTextRequest,
 ): Promise<TranslateTextResponse> {
   // biome-ignore lint/suspicious/noExplicitAny: grpc-js method overloads require cast
-  return call(getClient().translateText.bind(getClient()) as any, req);
+  return call(getClient().translateText.bind(getClient()) as any, req, TRANSLATE_DEADLINE_MS);
 }
 
 export function detectLanguage(

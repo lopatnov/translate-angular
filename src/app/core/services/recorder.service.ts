@@ -48,7 +48,18 @@ export class RecorderService {
       this.errorMessage.set(null);
 
       navigator.mediaDevices
-        .getUserMedia({ audio: true })
+        .getUserMedia({
+          audio: {
+            // Disable Chrome's automatic audio processing to prevent it from
+            // suppressing speech energy to near-zero (observed as [BLANK_AUDIO]
+            // from Whisper on Chrome while Firefox works fine).
+            // echoCancellation is intentionally left at browser default (true)
+            // for acoustic comfort; AGC and noise suppression are the culprits.
+            noiseSuppression: false,
+            autoGainControl: false,
+          },
+          video: false,
+        })
         .then((stream) => {
           const mimeType = pickMimeType();
           this.mediaRecorder = new MediaRecorder(stream, mimeType ? { mimeType } : {});
@@ -80,7 +91,9 @@ export class RecorderService {
               });
           };
 
-          this.mediaRecorder.start();
+          // timeslice=250ms ensures Chrome flushes audio chunks regularly;
+          // without it, Chrome may produce a malformed webm that decodes as silence.
+          this.mediaRecorder.start(250);
           this.state.set('recording');
 
           this.timerHandle = setInterval(() => {
