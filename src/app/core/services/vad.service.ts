@@ -197,12 +197,14 @@ export class VadService {
     subscriber: Subscriber<Float32Array>,
   ): void {
     const name = err instanceof DOMException ? err.name : '';
+    const micUnavailable =
+      err instanceof Error
+        ? `Microphone unavailable: ${err.message}`
+        : 'Microphone unavailable.';
     const msg =
       name === 'NotAllowedError' || name === 'PermissionDeniedError'
         ? 'Microphone access denied. Allow it in browser settings and try again.'
-        : err instanceof Error
-          ? `Microphone unavailable: ${err.message}`
-          : 'Microphone unavailable.';
+        : micUnavailable;
     this.state.set('error');
     this.errorMessage.set(msg);
     subscriber.error(new Error(msg));

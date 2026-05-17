@@ -18,15 +18,13 @@
             @if (recorder.state() === 'recording') {
               <span class="recording-dot" aria-hidden="true"></span>
               <button type="button" class="btn btn-sm btn-danger"
-                      (click)="stopRecording()"
-                      aria-label="Stop recording, {{ recorder.elapsedSeconds() }} seconds elapsed">
+                      (click)="stopRecording()">
                 <span aria-hidden="true">⏹</span> Stop ({{ recorder.elapsedSeconds() }}s)
               </button>
             } @else {
               <button type="button" class="btn btn-sm btn-outline-secondary"
                       (click)="startRecording()"
-                      [disabled]="recorder.state() === 'recording'"
-                      aria-label="Record from microphone">
+                      [disabled]="recorder.state() === 'recording'">
                 <span aria-hidden="true">🎙</span> Record
               </button>
             }

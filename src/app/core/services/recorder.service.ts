@@ -79,23 +79,9 @@ export class RecorderService {
           // without it, Chrome may produce a malformed webm that decodes as silence.
           this.mediaRecorder.start(250);
           this.state.set('recording');
-
-          this.timerHandle = setInterval(() => {
-            this.elapsedSeconds.update((s) => s + 1);
-          }, 1000);
+          this._startTimer();
         })
-        .catch((err: unknown) => {
-          const name = err instanceof DOMException ? err.name : '';
-          const msg =
-            name === 'NotAllowedError' || name === 'PermissionDeniedError'
-              ? 'Microphone access denied. Allow it in browser settings and try again.'
-              : err instanceof Error
-                ? `Microphone unavailable: ${err.message}`
-                : 'Microphone unavailable.';
-          this.state.set('error');
-          this.errorMessage.set(msg);
-          subscriber.error(new Error(msg));
-        });
+        .catch((err: unknown) => this.handleMicError(err, subscriber));
 
       // Teardown: stop recording if the subscriber unsubscribes early.
       return () => this.stop();
@@ -166,6 +152,29 @@ export class RecorderService {
       this.state.set('idle');
       this.errorMessage.set(null);
     }
+  }
+
+  /** Handles `getUserMedia` failures: sets error state and notifies subscriber. */
+  private handleMicError(err: unknown, subscriber: Subscriber<File>): void {
+    const name = err instanceof DOMException ? err.name : '';
+    const micUnavailable =
+      err instanceof Error
+        ? `Microphone unavailable: ${err.message}`
+        : 'Microphone unavailable.';
+    const msg =
+      name === 'NotAllowedError' || name === 'PermissionDeniedError'
+        ? 'Microphone access denied. Allow it in browser settings and try again.'
+        : micUnavailable;
+    this.state.set('error');
+    this.errorMessage.set(msg);
+    subscriber.error(new Error(msg));
+  }
+
+  /** Starts the elapsed-seconds ticker. */
+  private _startTimer(): void {
+    this.timerHandle = setInterval(() => {
+      this.elapsedSeconds.update((s) => s + 1);
+    }, 1000);
   }
 
   private _clearTimer(): void {
