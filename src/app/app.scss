@@ -23,7 +23,7 @@ html {
 
     &.active {
       color: #f8f1de;
-      background: rgba(201, 162, 74, 0.16);
+      background: #2c2211; /* rgba(201,162,74,0.16) blended over sidebar dark base */
       border-left: 3px solid #c9a24a;
       padding-left: calc(1rem - 3px);
     }
