@@ -73,7 +73,10 @@ export class TranslateApiService {
           target_voice: targetVoice || undefined,
           language_format: languageFormat,
         };
-        return this.http.post<TranslateAudioResponse>('/api/translate-audio', req);
+        return this.http.post<TranslateAudioResponse>(
+          '/api/translate-audio',
+          req,
+        );
       }),
     );
   }

@@ -9,8 +9,6 @@ import type {
 } from '@shared/api.types';
 import { Router } from 'express';
 import {
-  TRANSLATE_DEADLINE_MS,
-  TRANSCRIBE_DEADLINE_MS,
   detectLanguage,
   getCapabilities,
   grpcUrl,
@@ -68,8 +66,14 @@ export function createApiRouter(): Router {
   });
 
   router.post('/translate', async (req, res) => {
-    const { text, source_language, target_language, model, context, language_format } =
-      req.body as TranslateRequest;
+    const {
+      text,
+      source_language,
+      target_language,
+      model,
+      context,
+      language_format,
+    } = req.body as TranslateRequest;
     if (!text || !target_language) {
       res.status(400).json({ error: 'text and target_language are required' });
       return;
@@ -173,10 +177,17 @@ export function createApiRouter(): Router {
   });
 
   router.post('/translate-audio', async (req, res) => {
-    const { audio_data_base64, source_language, target_language, target_voice, language_format } =
-      req.body as TranslateAudioRequest;
+    const {
+      audio_data_base64,
+      source_language,
+      target_language,
+      target_voice,
+      language_format,
+    } = req.body as TranslateAudioRequest;
     if (!audio_data_base64 || !target_language) {
-      res.status(400).json({ error: 'audio_data_base64 and target_language are required' });
+      res
+        .status(400)
+        .json({ error: 'audio_data_base64 and target_language are required' });
       return;
     }
     try {
@@ -186,18 +197,20 @@ export function createApiRouter(): Router {
       }
       const buf = Buffer.from(audio_data_base64, 'base64');
       const result = await translateAudio({
-        audioData:      buf,
+        audioData: buf,
         sourceLanguage: source_language ?? 'auto',
         targetLanguage: target_language,
-        audioFormat:    '',
-        targetVoice:    target_voice ?? '',
+        audioFormat: '',
+        targetVoice: target_voice ?? '',
         languageFormat: language_format ?? 'bcp47',
       });
       res.json({
-        transcription:     result.transcription,
-        translated_text:   result.translatedText,
-        audio_data_base64: Buffer.from(result.translatedAudio).toString('base64'),
-        sample_rate:       result.sampleRate,
+        transcription: result.transcription,
+        translated_text: result.translatedText,
+        audio_data_base64: Buffer.from(result.translatedAudio).toString(
+          'base64',
+        ),
+        sample_rate: result.sampleRate,
       });
     } catch (err) {
       res.status(grpcErrorToHttpStatus(err)).json({ error: errorMessage(err) });
@@ -219,7 +232,9 @@ export function createApiRouter(): Router {
         speed: speed ?? 1.0,
         languageFormat: language_format ?? 'bcp47',
       });
-      const audio_data_base64 = Buffer.from(result.audioData).toString('base64');
+      const audio_data_base64 = Buffer.from(result.audioData).toString(
+        'base64',
+      );
       res.json({ audio_data_base64, sample_rate: result.sampleRate });
     } catch (err) {
       res.status(grpcErrorToHttpStatus(err)).json({ error: errorMessage(err) });

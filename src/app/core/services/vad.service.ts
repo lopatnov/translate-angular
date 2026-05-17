@@ -5,9 +5,9 @@ export type VadState = 'idle' | 'starting' | 'listening' | 'error';
 
 /** RMS thresholds for low / medium / high microphone sensitivity. */
 export const SENSITIVITY_THRESHOLDS = {
-  low:    0.03,  // noisy environment — only loud speech detected
+  low: 0.03, // noisy environment — only loud speech detected
   medium: 0.012, // typical office
-  high:   0.005, // quiet room — picks up soft speech
+  high: 0.005, // quiet room — picks up soft speech
 } as const;
 
 export type VadSensitivity = keyof typeof SENSITIVITY_THRESHOLDS;
@@ -88,7 +88,10 @@ export class VadService {
 
           await this.audioCtx.audioWorklet.addModule('/pcm-worklet.js');
 
-          this.workletNode = new AudioWorkletNode(this.audioCtx, 'pcm-collector');
+          this.workletNode = new AudioWorkletNode(
+            this.audioCtx,
+            'pcm-collector',
+          );
 
           // ── VAD state ────────────────────────────────────────────────────
           const threshold =
@@ -156,10 +159,7 @@ export class VadService {
               speechBufs.push(frame);
 
               // Force-emit when chunk exceeds maxSpeechMs.
-              const totalSamples = speechBufs.reduce(
-                (n, b) => n + b.length,
-                0,
-              );
+              const totalSamples = speechBufs.reduce((n, b) => n + b.length, 0);
               if (totalSamples >= maxSpeechSamples) emitAndReset();
             } else if (isSpeaking) {
               silenceFrames++;
@@ -203,7 +203,11 @@ export class VadService {
       this.silenceTimer = null;
     }
     this.workletNode?.disconnect();
-    this.stream?.getTracks().forEach((t) => t.stop());
+    if (this.stream) {
+      for (const t of this.stream.getTracks()) {
+        t.stop();
+      }
+    }
     void this.audioCtx?.close();
     this.workletNode = null;
     this.stream = null;

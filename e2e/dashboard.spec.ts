@@ -45,6 +45,8 @@ test.describe('Dashboard', () => {
 
   test('gRPC URL hint shown in sidebar', async ({ page }) => {
     // Footer always shows the configured gRPC target.
-    await expect(page.locator('aside').getByText(/localhost:5100/)).toBeVisible();
+    await expect(
+      page.locator('aside').getByText(/localhost:5100/),
+    ).toBeVisible();
   });
 });

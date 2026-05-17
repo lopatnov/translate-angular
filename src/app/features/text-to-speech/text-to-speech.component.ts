@@ -36,10 +36,10 @@ export class TextToSpeechComponent {
   protected readonly sampleRate = signal<number | null>(null);
 
   protected readonly form = this.fb.nonNullable.group({
-    text:            ['', Validators.required],
-    language:        [''],
-    voice:           [''],
-    speed:           [0.85],
+    text: ['', Validators.required],
+    language: [''],
+    voice: [''],
+    speed: [0.85],
     language_format: ['bcp47'],
   });
 
@@ -62,7 +62,13 @@ export class TextToSpeechComponent {
       this.form.getRawValue();
 
     this.api
-      .synthesize({ text, language: language || undefined, voice: voice || undefined, speed, language_format })
+      .synthesize({
+        text,
+        language: language || undefined,
+        voice: voice || undefined,
+        speed,
+        language_format,
+      })
       .subscribe({
         next: (res) => {
           const bytes = Uint8Array.from(atob(res.audio_data_base64), (c) =>
@@ -93,7 +99,13 @@ export class TextToSpeechComponent {
     const prev = this.audioUrl();
     if (prev) URL.revokeObjectURL(prev);
 
-    this.form.reset({ text: '', language: '', voice: '', speed: 0.85, language_format: 'bcp47' });
+    this.form.reset({
+      text: '',
+      language: '',
+      voice: '',
+      speed: 0.85,
+      language_format: 'bcp47',
+    });
     this.audioUrl.set(null);
     this.sampleRate.set(null);
     this.error.set(null);

@@ -35,7 +35,9 @@ test.describe('Text to speech', () => {
     ).toBeDisabled();
   });
 
-  test('Synthesize button is enabled when text is entered', async ({ page }) => {
+  test('Synthesize button is enabled when text is entered', async ({
+    page,
+  }) => {
     await page.locator('#tts-text').fill('Hello world');
     await expect(
       page.getByRole('button', { name: 'Synthesize' }),

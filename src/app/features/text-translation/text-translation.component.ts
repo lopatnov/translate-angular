@@ -75,8 +75,14 @@ export class TextTranslationComponent {
     this.error.set(null);
     this.result.set(null);
 
-    const { text, source_language, target_language, model, context, language_format } =
-      this.form.getRawValue();
+    const {
+      text,
+      source_language,
+      target_language,
+      model,
+      context,
+      language_format,
+    } = this.form.getRawValue();
 
     this.api
       .translate({

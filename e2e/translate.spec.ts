@@ -11,7 +11,9 @@ test.describe('Text translation', () => {
     ).toBeVisible();
   });
 
-  test('source language input includes Auto-detect datalist option', async ({ page }) => {
+  test('source language input includes Auto-detect datalist option', async ({
+    page,
+  }) => {
     // Language select renders as <input type="search"> + <datalist id="src-lang-list">.
     await expect(page.locator('#src-lang')).toBeVisible();
     await expect(

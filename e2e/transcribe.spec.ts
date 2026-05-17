@@ -17,7 +17,9 @@ test.describe('Speech to text', () => {
     await expect(input).toHaveAttribute('accept', '.wav');
   });
 
-  test('language input includes Auto-detect datalist option', async ({ page }) => {
+  test('language input includes Auto-detect datalist option', async ({
+    page,
+  }) => {
     // Language select renders as <input type="search"> + <datalist id="stt-lang-list">.
     await expect(page.locator('#stt-lang')).toBeVisible();
     await expect(
@@ -38,9 +40,7 @@ test.describe('Speech to text', () => {
   });
 
   test('Record button is present', async ({ page }) => {
-    await expect(
-      page.getByRole('button', { name: /record/i }),
-    ).toBeVisible();
+    await expect(page.getByRole('button', { name: /record/i })).toBeVisible();
   });
 
   test('Clear button is present', async ({ page }) => {

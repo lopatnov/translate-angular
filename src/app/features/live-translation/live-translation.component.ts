@@ -13,10 +13,7 @@ import { LanguageSelectComponent } from '@app/shared/components/language-select/
 import { PageHeaderComponent } from '@app/shared/components/page-header/page-header.component';
 import { CapabilitiesService } from '@core/services/capabilities.service';
 import { TranslateApiService } from '@core/services/translate-api.service';
-import {
-  VadService,
-  type VadSensitivity,
-} from '@core/services/vad.service';
+import { type VadSensitivity, VadService } from '@core/services/vad.service';
 import { apiErrorMessage } from '@core/utils/api-error.util';
 import { LANGUAGES } from '@core/utils/languages';
 import { encodeWavFromPcm } from '@core/utils/wav-encoder';
@@ -32,44 +29,51 @@ export interface LiveSegment {
 }
 
 const SENSITIVITY_LABELS: Record<VadSensitivity, string> = {
-  low:    'Low — noisy environments',
+  low: 'Low — noisy environments',
   medium: 'Medium — typical room',
-  high:   'High — quiet room',
+  high: 'High — quiet room',
 };
 
 @Component({
   selector: 'app-live-translation',
-  imports: [ReactiveFormsModule, LanguageSelectComponent, PageHeaderComponent, RouterLink],
+  imports: [
+    ReactiveFormsModule,
+    LanguageSelectComponent,
+    PageHeaderComponent,
+    RouterLink,
+  ],
   templateUrl: './live-translation.component.html',
   styleUrl: './live-translation.component.scss',
   changeDetection: ChangeDetectionStrategy.OnPush,
 })
 export class LiveTranslationComponent {
-  private readonly api  = inject(TranslateApiService);
-  private readonly fb   = inject(FormBuilder);
+  private readonly api = inject(TranslateApiService);
+  private readonly fb = inject(FormBuilder);
   private readonly destroyRef = inject(DestroyRef);
 
-  protected readonly vad  = inject(VadService);
+  protected readonly vad = inject(VadService);
   protected readonly caps = inject(CapabilitiesService);
 
   protected readonly languages = LANGUAGES;
-  protected readonly sensitivityOptions = Object.entries(SENSITIVITY_LABELS) as [VadSensitivity, string][];
+  protected readonly sensitivityOptions = Object.entries(
+    SENSITIVITY_LABELS,
+  ) as [VadSensitivity, string][];
 
-  protected readonly liveFeed        = signal<LiveSegment[]>([]);
-  protected readonly elapsedSeconds  = signal(0);
-  protected readonly suggestStop     = signal(false);
+  protected readonly liveFeed = signal<LiveSegment[]>([]);
+  protected readonly elapsedSeconds = signal(0);
+  protected readonly suggestStop = signal(false);
   /** TTS state: idle → pending (API call) → speaking (audio playing) → idle. */
   protected readonly ttsState = signal<'idle' | 'pending' | 'speaking'>('idle');
 
-  private _nextId     = 0;
+  private _nextId = 0;
   private _timerHandle: ReturnType<typeof setInterval> | null = null;
 
   protected readonly form = this.fb.nonNullable.group({
-    source_language:    [''],          // Whisper language hint — empty = auto
-    target_language:    ['en'],        // Translation target (required)
-    model:              [''],          // Translation model — empty = default
-    sensitivity:        ['medium' as VadSensitivity],
-    speak_translation:  [false],       // Speak each translated segment via TTS
+    source_language: [''], // Whisper language hint — empty = auto
+    target_language: ['en'], // Translation target (required)
+    model: [''], // Translation model — empty = default
+    sensitivity: ['medium' as VadSensitivity],
+    speak_translation: [false], // Speak each translated segment via TTS
   });
 
   constructor() {
@@ -101,7 +105,9 @@ export class LiveTranslationComponent {
       .pipe(takeUntilDestroyed(this.destroyRef))
       .subscribe({
         next: (pcm) => this._processSegment(pcm),
-        error: () => { /* errorMessage already set on VadService */ },
+        error: () => {
+          /* errorMessage already set on VadService */
+        },
       });
   }
 
@@ -204,8 +210,13 @@ export class LiveTranslationComponent {
             );
             // Speak the translation if the checkbox is enabled and TTS is
             // available. Skip if another segment is already being spoken.
-            const { speak_translation, target_language } = this.form.getRawValue();
-            if (speak_translation && this.caps.ttsAvailable() && this.ttsState() === 'idle') {
+            const { speak_translation, target_language } =
+              this.form.getRawValue();
+            if (
+              speak_translation &&
+              this.caps.ttsAvailable() &&
+              this.ttsState() === 'idle'
+            ) {
               this._speakSegment(translated, target_language);
             }
           }
@@ -214,7 +225,11 @@ export class LiveTranslationComponent {
           this.liveFeed.update((feed) =>
             feed.map((s) =>
               s.id === id
-                ? { ...s, status: 'error', error: apiErrorMessage(err, 'Processing failed') }
+                ? {
+                    ...s,
+                    status: 'error',
+                    error: apiErrorMessage(err, 'Processing failed'),
+                  }
                 : s,
             ),
           );

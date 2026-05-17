@@ -44,7 +44,7 @@ export class SpeechToSpeechComponent {
   protected readonly form = this.fb.nonNullable.group({
     source_language: ['auto'],
     target_language: ['', Validators.required],
-    target_voice:    [''],
+    target_voice: [''],
     language_format: ['bcp47'],
   });
 
@@ -71,7 +71,13 @@ export class SpeechToSpeechComponent {
       this.form.getRawValue();
 
     this.api
-      .translateAudio(file, target_language, source_language, target_voice, language_format)
+      .translateAudio(
+        file,
+        target_language,
+        source_language,
+        target_voice,
+        language_format,
+      )
       .subscribe({
         next: (res) => {
           this.result.set(res);
@@ -103,7 +109,12 @@ export class SpeechToSpeechComponent {
     if (prev) URL.revokeObjectURL(prev);
 
     this.selectedFile.set(null);
-    this.form.reset({ source_language: 'auto', target_language: '', target_voice: '', language_format: 'bcp47' });
+    this.form.reset({
+      source_language: 'auto',
+      target_language: '',
+      target_voice: '',
+      language_format: 'bcp47',
+    });
     this.result.set(null);
     this.audioUrl.set(null);
     this.error.set(null);

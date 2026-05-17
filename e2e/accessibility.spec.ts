@@ -1,6 +1,6 @@
+import { join } from 'node:path';
 import type { Page } from '@playwright/test';
 import { expect, test } from '@playwright/test';
-import { join } from 'node:path';
 
 /**
  * Path to the axe-core browser bundle.
@@ -15,13 +15,32 @@ const axeScript = join(process.cwd(), 'node_modules', 'axe-core', 'axe.min.js');
 async function runAxe(page: Page) {
   await page.addScriptTag({ path: axeScript });
   return page.evaluate(async () => {
-    type AxeViolation = { impact: string; id: string; description: string; nodes: unknown[] };
-    const { violations } = await (window as Window & { axe: { run: () => Promise<{ violations: AxeViolation[] }> } }).axe.run();
-    return violations.filter((v) => v.impact === 'serious' || v.impact === 'critical');
+    type AxeViolation = {
+      impact: string;
+      id: string;
+      description: string;
+      nodes: unknown[];
+    };
+    const { violations } = await (
+      window as Window & {
+        axe: { run: () => Promise<{ violations: AxeViolation[] }> };
+      }
+    ).axe.run();
+    return violations.filter(
+      (v) => v.impact === 'serious' || v.impact === 'critical',
+    );
   });
 }
 
-function axeAssert(violations: { impact: string; id: string; description: string; nodes: unknown[] }[], route: string) {
+function axeAssert(
+  violations: {
+    impact: string;
+    id: string;
+    description: string;
+    nodes: unknown[];
+  }[],
+  route: string,
+) {
   expect(
     violations,
     `Critical/serious axe violations on ${route}:\n${JSON.stringify(violations, null, 2)}`,
@@ -34,21 +53,29 @@ test.describe('Accessibility (axe-core WCAG AA)', () => {
     await page
       .locator('.spinner-border, [role="alert"], .row.g-4')
       .waitFor({ timeout: 15_000 })
-      .catch(() => {/* loading timeout OK — axe still runs on current state */});
+      .catch(() => {
+        /* loading timeout OK — axe still runs on current state */
+      });
     axeAssert(await runAxe(page), '/');
   });
 
-  test('Text translation — no critical/serious violations', async ({ page }) => {
+  test('Text translation — no critical/serious violations', async ({
+    page,
+  }) => {
     await page.goto('/translate');
     axeAssert(await runAxe(page), '/translate');
   });
 
-  test('Language detection — no critical/serious violations', async ({ page }) => {
+  test('Language detection — no critical/serious violations', async ({
+    page,
+  }) => {
     await page.goto('/detect');
     axeAssert(await runAxe(page), '/detect');
   });
 
-  test('Localization files — no critical/serious violations', async ({ page }) => {
+  test('Localization files — no critical/serious violations', async ({
+    page,
+  }) => {
     await page.goto('/localize');
     axeAssert(await runAxe(page), '/localize');
   });
@@ -63,7 +90,9 @@ test.describe('Accessibility (axe-core WCAG AA)', () => {
     axeAssert(await runAxe(page), '/synthesize');
   });
 
-  test('Speech to speech — no critical/serious violations', async ({ page }) => {
+  test('Speech to speech — no critical/serious violations', async ({
+    page,
+  }) => {
     await page.goto('/translate-audio');
     axeAssert(await runAxe(page), '/translate-audio');
   });

@@ -1,6 +1,6 @@
 import { Injectable, signal } from '@angular/core';
-import { Observable } from 'rxjs';
 import { encodeWav } from '@core/utils/wav-encoder';
+import { Observable } from 'rxjs';
 
 export type RecorderState = 'idle' | 'recording' | 'error';
 
@@ -61,7 +61,10 @@ export class RecorderService {
         })
         .then((stream) => {
           const mimeType = pickMimeType();
-          this.mediaRecorder = new MediaRecorder(stream, mimeType ? { mimeType } : {});
+          this.mediaRecorder = new MediaRecorder(
+            stream,
+            mimeType ? { mimeType } : {},
+          );
 
           this.mediaRecorder.ondataavailable = (e) => {
             if (e.data.size > 0) this.chunks.push(e.data);
@@ -69,21 +72,28 @@ export class RecorderService {
 
           this.mediaRecorder.onstop = () => {
             this._clearTimer();
-            stream.getTracks().forEach((t) => t.stop());
+            for (const t of stream.getTracks()) {
+              t.stop();
+            }
 
-            const blob = new Blob(this.chunks, { type: mimeType ?? 'audio/webm' });
+            const blob = new Blob(this.chunks, {
+              type: mimeType ?? 'audio/webm',
+            });
             blob
               .arrayBuffer()
               .then((ab) => new AudioContext().decodeAudioData(ab))
               .then((decoded) => {
                 const wavBuffer = encodeWav(decoded);
-                const file = new File([wavBuffer], 'recording.wav', { type: 'audio/wav' });
+                const file = new File([wavBuffer], 'recording.wav', {
+                  type: 'audio/wav',
+                });
                 this.state.set('idle');
                 subscriber.next(file);
                 subscriber.complete();
               })
               .catch((err: unknown) => {
-                const msg = err instanceof Error ? err.message : 'Audio encoding failed';
+                const msg =
+                  err instanceof Error ? err.message : 'Audio encoding failed';
                 this.state.set('error');
                 this.errorMessage.set(msg);
                 subscriber.error(new Error(msg));
