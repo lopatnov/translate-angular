@@ -9,10 +9,10 @@ import { FormBuilder, ReactiveFormsModule, Validators } from '@angular/forms';
 import { ErrorAlertComponent } from '@app/shared/components/error-alert/error-alert.component';
 import { PageHeaderComponent } from '@app/shared/components/page-header/page-header.component';
 import { SubmitButtonComponent } from '@app/shared/components/submit-button/submit-button.component';
+import { AudioPlayerService } from '@core/services/audio-player.service';
 import { CapabilitiesService } from '@core/services/capabilities.service';
 import { TranslateApiService } from '@core/services/translate-api.service';
 import { apiErrorMessage } from '@core/utils/api-error.util';
-import { base64ToAudioUrl, downloadWav } from '@core/utils/audio-url.util';
 
 @Component({
   selector: 'app-text-to-speech',
@@ -22,6 +22,7 @@ import { base64ToAudioUrl, downloadWav } from '@core/utils/audio-url.util';
     ErrorAlertComponent,
     PageHeaderComponent,
   ],
+  providers: [AudioPlayerService],
   templateUrl: './text-to-speech.component.html',
   styleUrl: './text-to-speech.component.scss',
   changeDetection: ChangeDetectionStrategy.OnPush,
@@ -30,11 +31,10 @@ export class TextToSpeechComponent {
   private readonly api = inject(TranslateApiService);
   private readonly fb = inject(FormBuilder);
   protected readonly caps = inject(CapabilitiesService);
+  protected readonly player = inject(AudioPlayerService);
 
   protected readonly loading = signal(false);
   protected readonly error = signal<string | null>(null);
-  protected readonly audioUrl = signal<string | null>(null);
-  protected readonly sampleRate = signal<number | null>(null);
 
   protected readonly form = this.fb.nonNullable.group({
     text: ['', Validators.required],
@@ -52,12 +52,7 @@ export class TextToSpeechComponent {
 
     this.loading.set(true);
     this.error.set(null);
-
-    // Revoke previous blob URL to avoid memory leak.
-    const prev = this.audioUrl();
-    if (prev) URL.revokeObjectURL(prev);
-    this.audioUrl.set(null);
-    this.sampleRate.set(null);
+    this.player.clear();
 
     const { text, language, voice, speed, language_format } =
       this.form.getRawValue();
@@ -72,8 +67,7 @@ export class TextToSpeechComponent {
       })
       .subscribe({
         next: (res) => {
-          this.audioUrl.set(base64ToAudioUrl(res.audio_data_base64));
-          this.sampleRate.set(res.sample_rate);
+          this.player.setAudio(res.audio_data_base64, res.sample_rate);
           this.loading.set(false);
         },
         error: (err) => {
@@ -84,14 +78,11 @@ export class TextToSpeechComponent {
   }
 
   download(): void {
-    const url = this.audioUrl();
-    if (url) downloadWav(url, 'synthesized.wav');
+    this.player.download('synthesized.wav');
   }
 
   clear(): void {
-    const prev = this.audioUrl();
-    if (prev) URL.revokeObjectURL(prev);
-
+    this.player.clear();
     this.form.reset({
       text: '',
       language: '',
@@ -99,8 +90,6 @@ export class TextToSpeechComponent {
       speed: 0.85,
       language_format: 'bcp47',
     });
-    this.audioUrl.set(null);
-    this.sampleRate.set(null);
     this.error.set(null);
   }
 }

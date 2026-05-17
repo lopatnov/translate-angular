@@ -11,10 +11,10 @@ import { ErrorAlertComponent } from '@app/shared/components/error-alert/error-al
 import { LanguageSelectComponent } from '@app/shared/components/language-select/language-select.component';
 import { PageHeaderComponent } from '@app/shared/components/page-header/page-header.component';
 import { SubmitButtonComponent } from '@app/shared/components/submit-button/submit-button.component';
+import { AudioPlayerService } from '@core/services/audio-player.service';
 import { CapabilitiesService } from '@core/services/capabilities.service';
 import { TranslateApiService } from '@core/services/translate-api.service';
 import { apiErrorMessage } from '@core/utils/api-error.util';
-import { base64ToAudioUrl, downloadWav } from '@core/utils/audio-url.util';
 import type { TranslateAudioResponse } from '@shared/api.types';
 
 @Component({
@@ -27,6 +27,7 @@ import type { TranslateAudioResponse } from '@shared/api.types';
     PageHeaderComponent,
     CopyButtonComponent,
   ],
+  providers: [AudioPlayerService],
   templateUrl: './speech-to-speech.component.html',
   styleUrl: './speech-to-speech.component.scss',
   changeDetection: ChangeDetectionStrategy.OnPush,
@@ -35,12 +36,12 @@ export class SpeechToSpeechComponent {
   private readonly api = inject(TranslateApiService);
   private readonly fb = inject(FormBuilder);
   protected readonly caps = inject(CapabilitiesService);
+  protected readonly player = inject(AudioPlayerService);
 
   protected readonly loading = signal(false);
   protected readonly error = signal<string | null>(null);
   protected readonly result = signal<TranslateAudioResponse | null>(null);
   protected readonly selectedFile = signal<File | null>(null);
-  protected readonly audioUrl = signal<string | null>(null);
 
   protected readonly form = this.fb.nonNullable.group({
     source_language: ['auto'],
@@ -63,10 +64,7 @@ export class SpeechToSpeechComponent {
     this.loading.set(true);
     this.error.set(null);
     this.result.set(null);
-
-    const prev = this.audioUrl();
-    if (prev) URL.revokeObjectURL(prev);
-    this.audioUrl.set(null);
+    this.player.clear();
 
     const { source_language, target_language, target_voice, language_format } =
       this.form.getRawValue();
@@ -82,7 +80,7 @@ export class SpeechToSpeechComponent {
       .subscribe({
         next: (res) => {
           this.result.set(res);
-          this.audioUrl.set(base64ToAudioUrl(res.audio_data_base64));
+          this.player.setAudio(res.audio_data_base64);
           this.loading.set(false);
         },
         error: (err) => {
@@ -93,14 +91,11 @@ export class SpeechToSpeechComponent {
   }
 
   download(): void {
-    const url = this.audioUrl();
-    if (url) downloadWav(url, 'translated.wav');
+    this.player.download('translated.wav');
   }
 
   clear(): void {
-    const prev = this.audioUrl();
-    if (prev) URL.revokeObjectURL(prev);
-
+    this.player.clear();
     this.selectedFile.set(null);
     this.form.reset({
       source_language: 'auto',
@@ -109,7 +104,6 @@ export class SpeechToSpeechComponent {
       language_format: 'bcp47',
     });
     this.result.set(null);
-    this.audioUrl.set(null);
     this.error.set(null);
   }
 }
