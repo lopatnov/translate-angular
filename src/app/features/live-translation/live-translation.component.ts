@@ -58,8 +58,8 @@ export class LiveTranslationComponent {
   protected readonly liveFeed        = signal<LiveSegment[]>([]);
   protected readonly elapsedSeconds  = signal(0);
   protected readonly suggestStop     = signal(false);
-  /** True while TTS audio is playing (suppresses VAD emission). */
-  protected readonly isSpeakingTts   = signal(false);
+  /** TTS state: idle → pending (API call) → speaking (audio playing) → idle. */
+  protected readonly ttsState = signal<'idle' | 'pending' | 'speaking'>('idle');
 
   private _nextId     = 0;
   private _timerHandle: ReturnType<typeof setInterval> | null = null;
@@ -109,6 +109,7 @@ export class LiveTranslationComponent {
     this.vad.stop();
     this._stopTimer();
     this.suggestStop.set(false);
+    this.ttsState.set('idle');
   }
 
   clear(): void {
@@ -117,6 +118,7 @@ export class LiveTranslationComponent {
     this.liveFeed.set([]);
     this.elapsedSeconds.set(0);
     this.suggestStop.set(false);
+    this.ttsState.set('idle');
     this.vad.resetError();
   }
 
@@ -203,7 +205,7 @@ export class LiveTranslationComponent {
             // Speak the translation if the checkbox is enabled and TTS is
             // available. Skip if another segment is already being spoken.
             const { speak_translation, target_language } = this.form.getRawValue();
-            if (speak_translation && this.caps.ttsAvailable() && !this.isSpeakingTts()) {
+            if (speak_translation && this.caps.ttsAvailable() && this.ttsState() === 'idle') {
               this._speakSegment(translated, target_language);
             }
           }
@@ -227,7 +229,9 @@ export class LiveTranslationComponent {
    * this handles the VAD path).
    */
   private _speakSegment(text: string, language: string): void {
-    this.isSpeakingTts.set(true);
+    // 'pending' → suppress VAD immediately so any mic bleed during the API
+    // round-trip is also discarded, not just the playback phase.
+    this.ttsState.set('pending');
     this.vad.suppress(true);
 
     this.api
@@ -235,6 +239,7 @@ export class LiveTranslationComponent {
       .pipe(take(1))
       .subscribe({
         next: (res) => {
+          this.ttsState.set('speaking');
           const bytes = Uint8Array.from(atob(res.audio_data_base64), (c) =>
             c.charCodeAt(0),
           );
@@ -243,7 +248,7 @@ export class LiveTranslationComponent {
           const audio = new Audio(url);
           const cleanup = (): void => {
             URL.revokeObjectURL(url);
-            this.isSpeakingTts.set(false);
+            this.ttsState.set('idle');
             this.vad.suppress(false);
           };
           audio.addEventListener('ended', cleanup, { once: true });
@@ -251,7 +256,7 @@ export class LiveTranslationComponent {
           void audio.play().catch(cleanup);
         },
         error: () => {
-          this.isSpeakingTts.set(false);
+          this.ttsState.set('idle');
           this.vad.suppress(false);
         },
       });

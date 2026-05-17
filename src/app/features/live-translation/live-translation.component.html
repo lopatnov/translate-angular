@@ -107,7 +107,14 @@
     </span>
     <span class="badge bg-secondary">{{ doneCount() }} segments</span>
   }
-  @if (isSpeakingTts()) {
+  @if (ttsState() === 'pending') {
+    <span class="badge bg-warning text-dark d-flex align-items-center gap-1"
+          aria-live="polite" aria-label="Preparing speech">
+      <span class="spinner-border spinner-border-sm" aria-hidden="true"></span>
+      Preparing speech…
+    </span>
+  }
+  @if (ttsState() === 'speaking') {
     <span class="badge bg-info text-dark d-flex align-items-center gap-1"
           aria-live="polite" aria-label="Speaking translation">
       🔊 Speaking…
