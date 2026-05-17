@@ -42,6 +42,8 @@ export class RecorderService {
    * Errors when microphone access is denied or encoding fails.
    */
   start(): Observable<File> {
+    // Ensure any previous session is cleaned up before starting a new one.
+    this.stop();
     return new Observable<File>((subscriber) => {
       this.chunks = [];
       this.elapsedSeconds.set(0);
@@ -76,12 +78,24 @@ export class RecorderService {
               t.stop();
             }
 
+            // Skip expensive decoding when the subscriber has already unsubscribed.
+            if (subscriber.closed) return;
+
             const blob = new Blob(this.chunks, {
               type: mimeType ?? 'audio/webm',
             });
             blob
               .arrayBuffer()
-              .then((ab) => new AudioContext().decodeAudioData(ab))
+              .then(async (ab) => {
+                // Close AudioContext after decoding — browsers enforce a strict
+                // limit on simultaneous AudioContext instances.
+                const ctx = new AudioContext();
+                try {
+                  return await ctx.decodeAudioData(ab);
+                } finally {
+                  void ctx.close();
+                }
+              })
               .then((decoded) => {
                 const wavBuffer = encodeWav(decoded);
                 const file = new File([wavBuffer], 'recording.wav', {

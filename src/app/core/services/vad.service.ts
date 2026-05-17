@@ -57,6 +57,9 @@ export class VadService {
   }
 
   start(options: VadOptions = {}): Observable<Float32Array> {
+    // Stop any active session before starting a new one to prevent
+    // orphaned timers, AudioWorklet nodes, and multiple microphone streams.
+    this.stop();
     return new Observable<Float32Array>((subscriber) => {
       this.state.set('starting');
       this.errorMessage.set(null);
