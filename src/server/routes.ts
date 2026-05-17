@@ -229,7 +229,7 @@ export function createApiRouter(): Router {
         text,
         language: language ?? '',
         voice: voice ?? '',
-        speed: speed ?? 1.0,
+        speed: speed ?? 1,
         languageFormat: language_format ?? 'bcp47',
       });
       const audio_data_base64 = Buffer.from(result.audioData).toString(

@@ -22,7 +22,7 @@ async function runAxe(page: Page) {
       nodes: unknown[];
     };
     const { violations } = await (
-      window as Window & {
+      globalThis as typeof globalThis & {
         axe: { run: () => Promise<{ violations: AxeViolation[] }> };
       }
     ).axe.run();

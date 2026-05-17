@@ -9,9 +9,11 @@ export function encodeWavFromPcm(
   const dataBytes = pcm.length * 2;
   const ab = new ArrayBuffer(44 + dataBytes);
   const view = new DataView(ab);
-  const writeAscii = (offset: number, text: string): void => {
-    for (let i = 0; i < text.length; i++)
-      view.setUint8(offset + i, text.charCodeAt(i));
+  const writeAscii = (pos: number, text: string): void => {
+    let i = pos;
+    for (const char of text) {
+      view.setUint8(i++, char.codePointAt(0) ?? 0);
+    }
   };
   writeAscii(0, 'RIFF');
   view.setUint32(4, 36 + dataBytes, true);
@@ -27,8 +29,8 @@ export function encodeWavFromPcm(
   writeAscii(36, 'data');
   view.setUint32(40, dataBytes, true);
   let offset = 44;
-  for (let i = 0; i < pcm.length; i++) {
-    const s = Math.max(-1, Math.min(1, pcm[i]));
+  for (const sample of pcm) {
+    const s = Math.max(-1, Math.min(1, sample));
     view.setInt16(offset, s < 0 ? s * 0x8000 : s * 0x7fff, true);
     offset += 2;
   }
@@ -62,9 +64,11 @@ export function encodeWav(buffer: AudioBuffer): ArrayBuffer {
   const ab = new ArrayBuffer(44 + dataBytes);
   const view = new DataView(ab);
 
-  const writeAscii = (offset: number, text: string): void => {
-    for (let i = 0; i < text.length; i++)
-      view.setUint8(offset + i, text.charCodeAt(i));
+  const writeAscii = (pos: number, text: string): void => {
+    let i = pos;
+    for (const char of text) {
+      view.setUint8(i++, char.codePointAt(0) ?? 0);
+    }
   };
 
   writeAscii(0, 'RIFF');
@@ -82,8 +86,8 @@ export function encodeWav(buffer: AudioBuffer): ArrayBuffer {
   view.setUint32(40, dataBytes, true);
 
   let offset = 44;
-  for (let i = 0; i < numSamples; i++) {
-    const s = Math.max(-1, Math.min(1, mono[i]));
+  for (const sample of mono) {
+    const s = Math.max(-1, Math.min(1, sample));
     view.setInt16(offset, s < 0 ? s * 0x8000 : s * 0x7fff, true);
     offset += 2;
   }

@@ -81,8 +81,9 @@ export class SpeechToSpeechComponent {
       .subscribe({
         next: (res) => {
           this.result.set(res);
-          const bytes = Uint8Array.from(atob(res.audio_data_base64), (c) =>
-            c.charCodeAt(0),
+          const bytes = Uint8Array.from(
+            atob(res.audio_data_base64),
+            (c) => c.codePointAt(0) ?? 0,
           );
           const blob = new Blob([bytes], { type: 'audio/wav' });
           this.audioUrl.set(URL.createObjectURL(blob));

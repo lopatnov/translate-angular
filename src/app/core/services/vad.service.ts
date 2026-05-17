@@ -1,5 +1,5 @@
 import { Injectable, signal } from '@angular/core';
-import { Observable } from 'rxjs';
+import { Observable, type Subscriber } from 'rxjs';
 
 export type VadState = 'idle' | 'starting' | 'listening' | 'error';
 
@@ -77,127 +77,135 @@ export class VadService {
           },
           video: false,
         })
-        .then(async (stream) => {
-          this.stream = stream;
-
-          // Request 16 kHz — some browsers honour this, others don't.
-          this.audioCtx = new AudioContext({ sampleRate: 16_000 });
-          // Chrome may start the AudioContext in a suspended state when it is
-          // created inside an async callback rather than a synchronous user-
-          // gesture handler.  resume() is a no-op when already running.
-          await this.audioCtx.resume();
-          const rate = this.audioCtx.sampleRate;
-          this.sampleRate.set(rate);
-
-          await this.audioCtx.audioWorklet.addModule('/pcm-worklet.js');
-
-          this.workletNode = new AudioWorkletNode(
-            this.audioCtx,
-            'pcm-collector',
-          );
-
-          // ── VAD state ────────────────────────────────────────────────────
-          const threshold =
-            SENSITIVITY_THRESHOLDS[options.sensitivity ?? 'medium'];
-          const frameSamples = 128; // AudioWorklet always delivers 128 samples
-          const frameDurationMs = (frameSamples / rate) * 1000;
-
-          const silencePaddingFrames = Math.ceil(
-            (options.silencePaddingMs ?? 400) / frameDurationMs,
-          );
-          const minSpeechFrames = Math.ceil(
-            (options.minSpeechMs ?? 300) / frameDurationMs,
-          );
-          const maxSpeechSamples = Math.ceil(
-            ((options.maxSpeechMs ?? 8_000) / 1_000) * rate,
-          );
-
-          const speechBufs: Float32Array[] = [];
-          let isSpeaking = false;
-          let silenceFrames = 0;
-          let speechFrames = 0;
-
-          const emitAndReset = (): void => {
-            // When suppressed (e.g. during TTS playback) we still reset state
-            // so that TTS audio captured by the mic is discarded rather than
-            // accumulated and emitted once suppression lifts.
-            if (speechFrames >= minSpeechFrames && !this._suppress) {
-              const total = speechBufs.reduce((n, b) => n + b.length, 0);
-              const merged = new Float32Array(total);
-              let pos = 0;
-              for (const buf of speechBufs) {
-                merged.set(buf, pos);
-                pos += buf.length;
-              }
-              subscriber.next(merged);
-            }
-            speechBufs.length = 0;
-            isSpeaking = false;
-            silenceFrames = 0;
-            speechFrames = 0;
-          };
-
-          // ── Silence-timeout counter (updates once per second) ────────────
-          this.silenceTimer = setInterval(() => {
-            if (!isSpeaking) {
-              this.silenceSeconds.update((s) => s + 1);
-            } else {
-              this.silenceSeconds.set(0);
-            }
-          }, 1_000);
-
-          // ── Process PCM frames from the worklet ──────────────────────────
-          this.workletNode.port.onmessage = (e: MessageEvent<Float32Array>) => {
-            const frame = e.data;
-
-            // RMS energy of this frame.
-            let sum = 0;
-            for (let i = 0; i < frame.length; i++) sum += frame[i] * frame[i];
-            const rms = Math.sqrt(sum / frame.length);
-
-            if (rms >= threshold) {
-              isSpeaking = true;
-              silenceFrames = 0;
-              speechFrames++;
-              speechBufs.push(frame);
-
-              // Force-emit when chunk exceeds maxSpeechMs.
-              const totalSamples = speechBufs.reduce((n, b) => n + b.length, 0);
-              if (totalSamples >= maxSpeechSamples) emitAndReset();
-            } else if (isSpeaking) {
-              silenceFrames++;
-              speechBufs.push(frame); // include silence padding in the chunk
-
-              if (silenceFrames >= silencePaddingFrames) emitAndReset();
-            }
-          };
-
-          // Source → worklet → muted gain → destination (keeps graph alive).
-          const source = this.audioCtx.createMediaStreamSource(stream);
-          const mute = this.audioCtx.createGain();
-          mute.gain.value = 0;
-          source.connect(this.workletNode);
-          this.workletNode.connect(mute);
-          mute.connect(this.audioCtx.destination);
-
-          this.state.set('listening');
-        })
-        .catch((err: unknown) => {
-          const name = err instanceof DOMException ? err.name : '';
-          const msg =
-            name === 'NotAllowedError' || name === 'PermissionDeniedError'
-              ? 'Microphone access denied. Allow it in browser settings and try again.'
-              : err instanceof Error
-                ? `Microphone unavailable: ${err.message}`
-                : 'Microphone unavailable.';
-          this.state.set('error');
-          this.errorMessage.set(msg);
-          subscriber.error(new Error(msg));
-        });
+        .then((stream) => this.setupAudioPipeline(stream, options, subscriber))
+        .catch((err: unknown) => this.handleMicError(err, subscriber));
 
       // Teardown — called when the subscriber unsubscribes or component destroys.
       return () => this.stop();
     });
+  }
+
+  /**
+   * Sets up the AudioContext, AudioWorklet, and VAD state machine after the
+   * microphone stream is granted.  Extracted from `start()` to reduce cognitive
+   * complexity; the promise is returned to the chain so rejection is still caught
+   * by the same `.catch()` that handles `getUserMedia` failures.
+   */
+  private async setupAudioPipeline(
+    stream: MediaStream,
+    options: VadOptions,
+    subscriber: Subscriber<Float32Array>,
+  ): Promise<void> {
+    this.stream = stream;
+
+    // Request 16 kHz — some browsers honour this, others don't.
+    this.audioCtx = new AudioContext({ sampleRate: 16_000 });
+    // Chrome may start the AudioContext in a suspended state when it is
+    // created inside an async callback rather than a synchronous user-
+    // gesture handler.  resume() is a no-op when already running.
+    await this.audioCtx.resume();
+    const rate = this.audioCtx.sampleRate;
+    this.sampleRate.set(rate);
+
+    await this.audioCtx.audioWorklet.addModule('/pcm-worklet.js');
+
+    this.workletNode = new AudioWorkletNode(this.audioCtx, 'pcm-collector');
+
+    // ── VAD parameters ───────────────────────────────────────────────────
+    const threshold = SENSITIVITY_THRESHOLDS[options.sensitivity ?? 'medium'];
+    const frameSamples = 128; // AudioWorklet always delivers 128 samples
+    const frameDurationMs = (frameSamples / rate) * 1000;
+    const silencePaddingFrames = Math.ceil(
+      (options.silencePaddingMs ?? 400) / frameDurationMs,
+    );
+    const minSpeechFrames = Math.ceil(
+      (options.minSpeechMs ?? 300) / frameDurationMs,
+    );
+    const maxSpeechSamples = Math.ceil(
+      ((options.maxSpeechMs ?? 8_000) / 1_000) * rate,
+    );
+
+    const speechBufs: Float32Array[] = [];
+    let isSpeaking = false;
+    let silenceFrames = 0;
+    let speechFrames = 0;
+
+    const emitAndReset = (): void => {
+      // When suppressed (e.g. during TTS playback) we still reset state
+      // so that TTS audio captured by the mic is discarded rather than
+      // accumulated and emitted once suppression lifts.
+      if (speechFrames >= minSpeechFrames && !this._suppress) {
+        const total = speechBufs.reduce((n, b) => n + b.length, 0);
+        const merged = new Float32Array(total);
+        let pos = 0;
+        for (const buf of speechBufs) {
+          merged.set(buf, pos);
+          pos += buf.length;
+        }
+        subscriber.next(merged);
+      }
+      speechBufs.length = 0;
+      isSpeaking = false;
+      silenceFrames = 0;
+      speechFrames = 0;
+    };
+
+    // ── Silence-timeout counter (updates once per second) ────────────────
+    this.silenceTimer = setInterval(() => {
+      if (isSpeaking) {
+        this.silenceSeconds.set(0);
+      } else {
+        this.silenceSeconds.update((s) => s + 1);
+      }
+    }, 1_000);
+
+    // ── Process PCM frames from the worklet ──────────────────────────────
+    this.workletNode.port.onmessage = (e: MessageEvent<Float32Array>) => {
+      const frame = e.data;
+      let sum = 0;
+      for (const sample of frame) sum += sample * sample;
+      const rms = Math.sqrt(sum / frame.length);
+
+      if (rms >= threshold) {
+        isSpeaking = true;
+        silenceFrames = 0;
+        speechFrames++;
+        speechBufs.push(frame);
+        const totalSamples = speechBufs.reduce((n, b) => n + b.length, 0);
+        if (totalSamples >= maxSpeechSamples) emitAndReset();
+      } else if (isSpeaking) {
+        silenceFrames++;
+        speechBufs.push(frame); // include silence padding in the chunk
+        if (silenceFrames >= silencePaddingFrames) emitAndReset();
+      }
+    };
+
+    // Source → worklet → muted gain → destination (keeps graph alive).
+    const source = this.audioCtx.createMediaStreamSource(stream);
+    const mute = this.audioCtx.createGain();
+    mute.gain.value = 0;
+    source.connect(this.workletNode);
+    this.workletNode.connect(mute);
+    mute.connect(this.audioCtx.destination);
+
+    this.state.set('listening');
+  }
+
+  /** Handles `getUserMedia` and `setupAudioPipeline` failures uniformly. */
+  private handleMicError(
+    err: unknown,
+    subscriber: Subscriber<Float32Array>,
+  ): void {
+    const name = err instanceof DOMException ? err.name : '';
+    const msg =
+      name === 'NotAllowedError' || name === 'PermissionDeniedError'
+        ? 'Microphone access denied. Allow it in browser settings and try again.'
+        : err instanceof Error
+          ? `Microphone unavailable: ${err.message}`
+          : 'Microphone unavailable.';
+    this.state.set('error');
+    this.errorMessage.set(msg);
+    subscriber.error(new Error(msg));
   }
 
   stop(): void {

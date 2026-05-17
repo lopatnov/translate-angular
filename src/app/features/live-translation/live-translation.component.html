@@ -140,7 +140,7 @@
 
 <!-- ── Silence timeout hint ───────────────────────────────────────── -->
 @if (suggestStop()) {
-  <div class="alert alert-warning d-flex align-items-center gap-2" role="status">
+  <output class="alert alert-warning d-flex align-items-center gap-2">
     <span aria-hidden="true">🕐</span>
     No speech detected for 60 seconds.
     <button type="button" class="btn btn-sm btn-warning ms-auto" (click)="stopLive()">
@@ -148,7 +148,7 @@
     </button>
     <button type="button" class="btn-close btn-sm" aria-label="Dismiss"
             (click)="suggestStop.set(false)"></button>
-  </div>
+  </output>
 }
 
 <!-- ── Live feed ──────────────────────────────────────────────────── -->
