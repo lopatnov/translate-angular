@@ -15,6 +15,7 @@ import { CapabilitiesService } from '@core/services/capabilities.service';
 import { TranslateApiService } from '@core/services/translate-api.service';
 import { type VadSensitivity, VadService } from '@core/services/vad.service';
 import { apiErrorMessage } from '@core/utils/api-error.util';
+import { base64ToAudioUrl } from '@core/utils/audio-url.util';
 import { LANGUAGES } from '@core/utils/languages';
 import { encodeWavFromPcm } from '@core/utils/wav-encoder';
 import { map, of, switchMap, take } from 'rxjs';
@@ -255,12 +256,7 @@ export class LiveTranslationComponent {
       .subscribe({
         next: (res) => {
           this.ttsState.set('speaking');
-          const bytes = Uint8Array.from(
-            atob(res.audio_data_base64),
-            (c) => c.codePointAt(0) ?? 0,
-          );
-          const blob = new Blob([bytes], { type: 'audio/wav' });
-          const url = URL.createObjectURL(blob);
+          const url = base64ToAudioUrl(res.audio_data_base64);
           const audio = new Audio(url);
           const cleanup = (): void => {
             URL.revokeObjectURL(url);

@@ -12,6 +12,7 @@ import { SubmitButtonComponent } from '@app/shared/components/submit-button/subm
 import { CapabilitiesService } from '@core/services/capabilities.service';
 import { TranslateApiService } from '@core/services/translate-api.service';
 import { apiErrorMessage } from '@core/utils/api-error.util';
+import { base64ToAudioUrl, downloadWav } from '@core/utils/audio-url.util';
 
 @Component({
   selector: 'app-text-to-speech',
@@ -71,12 +72,7 @@ export class TextToSpeechComponent {
       })
       .subscribe({
         next: (res) => {
-          const bytes = Uint8Array.from(
-            atob(res.audio_data_base64),
-            (c) => c.codePointAt(0) ?? 0,
-          );
-          const blob = new Blob([bytes], { type: 'audio/wav' });
-          this.audioUrl.set(URL.createObjectURL(blob));
+          this.audioUrl.set(base64ToAudioUrl(res.audio_data_base64));
           this.sampleRate.set(res.sample_rate);
           this.loading.set(false);
         },
@@ -89,11 +85,7 @@ export class TextToSpeechComponent {
 
   download(): void {
     const url = this.audioUrl();
-    if (!url) return;
-    const a = document.createElement('a');
-    a.href = url;
-    a.download = 'synthesized.wav';
-    a.click();
+    if (url) downloadWav(url, 'synthesized.wav');
   }
 
   clear(): void {

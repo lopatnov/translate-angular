@@ -14,6 +14,7 @@ import { SubmitButtonComponent } from '@app/shared/components/submit-button/subm
 import { CapabilitiesService } from '@core/services/capabilities.service';
 import { TranslateApiService } from '@core/services/translate-api.service';
 import { apiErrorMessage } from '@core/utils/api-error.util';
+import { base64ToAudioUrl, downloadWav } from '@core/utils/audio-url.util';
 import type { TranslateAudioResponse } from '@shared/api.types';
 
 @Component({
@@ -81,12 +82,7 @@ export class SpeechToSpeechComponent {
       .subscribe({
         next: (res) => {
           this.result.set(res);
-          const bytes = Uint8Array.from(
-            atob(res.audio_data_base64),
-            (c) => c.codePointAt(0) ?? 0,
-          );
-          const blob = new Blob([bytes], { type: 'audio/wav' });
-          this.audioUrl.set(URL.createObjectURL(blob));
+          this.audioUrl.set(base64ToAudioUrl(res.audio_data_base64));
           this.loading.set(false);
         },
         error: (err) => {
@@ -98,11 +94,7 @@ export class SpeechToSpeechComponent {
 
   download(): void {
     const url = this.audioUrl();
-    if (!url) return;
-    const a = document.createElement('a');
-    a.href = url;
-    a.download = 'translated.wav';
-    a.click();
+    if (url) downloadWav(url, 'translated.wav');
   }
 
   clear(): void {
