@@ -45,6 +45,17 @@ export class VadService {
   private stream: MediaStream | null = null;
   private silenceTimer: ReturnType<typeof setInterval> | null = null;
 
+  /**
+   * When true, VAD still captures audio but does not emit speech segments.
+   * Use while TTS is playing to prevent the speaker output from being re-translated.
+   */
+  private _suppress = false;
+
+  /** Mute or un-mute segment emission (e.g. during TTS playback). */
+  suppress(value: boolean): void {
+    this._suppress = value;
+  }
+
   start(options: VadOptions = {}): Observable<Float32Array> {
     return new Observable<Float32Array>((subscriber) => {
       this.state.set('starting');
@@ -52,12 +63,26 @@ export class VadService {
       this.silenceSeconds.set(0);
 
       navigator.mediaDevices
-        .getUserMedia({ audio: true, video: false })
+        .getUserMedia({
+          audio: {
+            // Disable Chrome's automatic audio processing — it can reduce signal
+            // energy to near-zero and prevent VAD from detecting any speech.
+            // echoCancellation stays ON so the speaker does not feed back into mic.
+            echoCancellation: true,
+            noiseSuppression: false,
+            autoGainControl: false,
+          },
+          video: false,
+        })
         .then(async (stream) => {
           this.stream = stream;
 
           // Request 16 kHz — some browsers honour this, others don't.
           this.audioCtx = new AudioContext({ sampleRate: 16_000 });
+          // Chrome may start the AudioContext in a suspended state when it is
+          // created inside an async callback rather than a synchronous user-
+          // gesture handler.  resume() is a no-op when already running.
+          await this.audioCtx.resume();
           const rate = this.audioCtx.sampleRate;
           this.sampleRate.set(rate);
 
@@ -87,7 +112,10 @@ export class VadService {
           let speechFrames = 0;
 
           const emitAndReset = (): void => {
-            if (speechFrames >= minSpeechFrames) {
+            // When suppressed (e.g. during TTS playback) we still reset state
+            // so that TTS audio captured by the mic is discarded rather than
+            // accumulated and emitted once suppression lifts.
+            if (speechFrames >= minSpeechFrames && !this._suppress) {
               const total = speechBufs.reduce((n, b) => n + b.length, 0);
               const merged = new Float32Array(total);
               let pos = 0;
@@ -180,6 +208,7 @@ export class VadService {
     this.workletNode = null;
     this.stream = null;
     this.audioCtx = null;
+    this._suppress = false;
     if (this.state() === 'listening' || this.state() === 'starting') {
       this.state.set('idle');
     }

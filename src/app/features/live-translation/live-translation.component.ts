@@ -20,8 +20,7 @@ import {
 import { apiErrorMessage } from '@core/utils/api-error.util';
 import { LANGUAGES } from '@core/utils/languages';
 import { encodeWavFromPcm } from '@core/utils/wav-encoder';
-import { switchMap } from 'rxjs';
-import { map, of } from 'rxjs';
+import { map, of, switchMap, take } from 'rxjs';
 
 export interface LiveSegment {
   id: number;
@@ -56,18 +55,21 @@ export class LiveTranslationComponent {
   protected readonly languages = LANGUAGES;
   protected readonly sensitivityOptions = Object.entries(SENSITIVITY_LABELS) as [VadSensitivity, string][];
 
-  protected readonly liveFeed      = signal<LiveSegment[]>([]);
-  protected readonly elapsedSeconds = signal(0);
-  protected readonly suggestStop   = signal(false);
+  protected readonly liveFeed        = signal<LiveSegment[]>([]);
+  protected readonly elapsedSeconds  = signal(0);
+  protected readonly suggestStop     = signal(false);
+  /** True while TTS audio is playing (suppresses VAD emission). */
+  protected readonly isSpeakingTts   = signal(false);
 
   private _nextId     = 0;
   private _timerHandle: ReturnType<typeof setInterval> | null = null;
 
   protected readonly form = this.fb.nonNullable.group({
-    source_language: [''],          // Whisper language hint — empty = auto
-    target_language: ['en'],        // Translation target (required)
-    model:           [''],          // Translation model — empty = default
-    sensitivity:     ['medium' as VadSensitivity],
+    source_language:    [''],          // Whisper language hint — empty = auto
+    target_language:    ['en'],        // Translation target (required)
+    model:              [''],          // Translation model — empty = default
+    sensitivity:        ['medium' as VadSensitivity],
+    speak_translation:  [false],       // Speak each translated segment via TTS
   });
 
   constructor() {
@@ -198,6 +200,12 @@ export class LiveTranslationComponent {
                 s.id === id ? { ...s, status: 'done', translated } : s,
               ),
             );
+            // Speak the translation if the checkbox is enabled and TTS is
+            // available. Skip if another segment is already being spoken.
+            const { speak_translation, target_language } = this.form.getRawValue();
+            if (speak_translation && this.caps.ttsAvailable() && !this.isSpeakingTts()) {
+              this._speakSegment(translated, target_language);
+            }
           }
         },
         error: (err) => {
@@ -208,6 +216,43 @@ export class LiveTranslationComponent {
                 : s,
             ),
           );
+        },
+      });
+  }
+
+  /**
+   * Synthesize `text` via TTS and play it back.
+   * VAD emission is suppressed for the duration so the speaker does not
+   * re-translate its own output (echoCancellation handles the acoustic path,
+   * this handles the VAD path).
+   */
+  private _speakSegment(text: string, language: string): void {
+    this.isSpeakingTts.set(true);
+    this.vad.suppress(true);
+
+    this.api
+      .synthesize({ text, language, language_format: 'bcp47' })
+      .pipe(take(1))
+      .subscribe({
+        next: (res) => {
+          const bytes = Uint8Array.from(atob(res.audio_data_base64), (c) =>
+            c.charCodeAt(0),
+          );
+          const blob = new Blob([bytes], { type: 'audio/wav' });
+          const url = URL.createObjectURL(blob);
+          const audio = new Audio(url);
+          const cleanup = (): void => {
+            URL.revokeObjectURL(url);
+            this.isSpeakingTts.set(false);
+            this.vad.suppress(false);
+          };
+          audio.addEventListener('ended', cleanup, { once: true });
+          audio.addEventListener('error', cleanup, { once: true });
+          void audio.play().catch(cleanup);
+        },
+        error: () => {
+          this.isSpeakingTts.set(false);
+          this.vad.suppress(false);
         },
       });
   }

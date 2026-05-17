@@ -47,6 +47,21 @@
               }
             </select>
           </div>
+
+          @if (caps.ttsAvailable()) {
+            <div class="col-12">
+              <div class="form-check">
+                <input class="form-check-input" type="checkbox" id="live-speak"
+                       formControlName="speak_translation" />
+                <label class="form-check-label" for="live-speak">
+                  🔊 Speak each translation aloud
+                </label>
+                <div class="form-text">
+                  Microphone is muted during playback to prevent feedback.
+                </div>
+              </div>
+            </div>
+          }
         </div>
       </form>
     </div>
@@ -91,6 +106,12 @@
       {{ formatElapsed(elapsedSeconds()) }}
     </span>
     <span class="badge bg-secondary">{{ doneCount() }} segments</span>
+  }
+  @if (isSpeakingTts()) {
+    <span class="badge bg-info text-dark d-flex align-items-center gap-1"
+          aria-live="polite" aria-label="Speaking translation">
+      🔊 Speaking…
+    </span>
   }
 </div>
 
