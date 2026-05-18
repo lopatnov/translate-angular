@@ -112,6 +112,8 @@ export interface TranslateAudioRequest {
   targetVoice: string;
   /** format for source_language/target_language: "bcp47" (default), "flores200", "native" */
   languageFormat: string;
+  /** name of the model entry from config (e.g. "m2m100_418M"); empty = default model */
+  model: string;
 }
 
 export interface TranslateAudioResponse {
@@ -1347,6 +1349,7 @@ function createBaseTranslateAudioRequest(): TranslateAudioRequest {
     audioFormat: "",
     targetVoice: "",
     languageFormat: "",
+    model: "",
   };
 }
 
@@ -1369,6 +1372,9 @@ export const TranslateAudioRequest: MessageFns<TranslateAudioRequest> = {
     }
     if (message.languageFormat !== "") {
       writer.uint32(50).string(message.languageFormat);
+    }
+    if (message.model !== "") {
+      writer.uint32(58).string(message.model);
     }
     return writer;
   },
@@ -1428,6 +1434,14 @@ export const TranslateAudioRequest: MessageFns<TranslateAudioRequest> = {
           message.languageFormat = reader.string();
           continue;
         }
+        case 7: {
+          if (tag !== 58) {
+            break;
+          }
+
+          message.model = reader.string();
+          continue;
+        }
       }
       if ((tag & 7) === 4 || tag === 0) {
         break;
@@ -1469,6 +1483,7 @@ export const TranslateAudioRequest: MessageFns<TranslateAudioRequest> = {
         : isSet(object.language_format)
         ? globalThis.String(object.language_format)
         : "",
+      model: isSet(object.model) ? globalThis.String(object.model) : "",
     };
   },
 
@@ -1492,6 +1507,9 @@ export const TranslateAudioRequest: MessageFns<TranslateAudioRequest> = {
     if (message.languageFormat !== "") {
       obj.languageFormat = message.languageFormat;
     }
+    if (message.model !== "") {
+      obj.model = message.model;
+    }
     return obj;
   },
 
@@ -1506,6 +1524,7 @@ export const TranslateAudioRequest: MessageFns<TranslateAudioRequest> = {
     message.audioFormat = object.audioFormat ?? "";
     message.targetVoice = object.targetVoice ?? "";
     message.languageFormat = object.languageFormat ?? "";
+    message.model = object.model ?? "";
     return message;
   },
 };

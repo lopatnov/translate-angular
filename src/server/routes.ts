@@ -204,6 +204,7 @@ export function createApiRouter(): Router {
         audioFormat: '',
         targetVoice: target_voice ?? '',
         languageFormat: language_format ?? 'bcp47',
+        model: model ?? '',
       });
       res.json({
         transcription: result.transcription,
