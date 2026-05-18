@@ -1,0 +1,26 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 32 32">
+  <defs>
+    <linearGradient id="bg" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" stop-color="#2a1f16"/>
+      <stop offset="100%" stop-color="#0f0b07"/>
+    </linearGradient>
+    <linearGradient id="gold" x1="0%" y1="100%" x2="0%" y2="0%">
+      <stop offset="0%" stop-color="#c9a24a"/>
+      <stop offset="100%" stop-color="#e0c36a"/>
+    </linearGradient>
+  </defs>
+
+  <!-- Dark brown background -->
+  <rect width="32" height="32" rx="7" fill="url(#bg)"/>
+
+  <!-- Subtle gold border -->
+  <rect x="1" y="1" width="30" height="30" rx="6.5" fill="none"
+        stroke="#c9a24a" stroke-width="1" stroke-opacity="0.55"/>
+
+  <!-- Audio waveform bars (symmetric, center-tallest) -->
+  <rect x="3"  y="14" width="4" height="4"  rx="2" fill="url(#gold)"/>
+  <rect x="9"  y="10" width="4" height="12" rx="2" fill="url(#gold)"/>
+  <rect x="15" y="6"  width="4" height="20" rx="2" fill="url(#gold)"/>
+  <rect x="21" y="10" width="4" height="12" rx="2" fill="url(#gold)"/>
+  <rect x="27" y="14" width="2" height="4"  rx="1" fill="url(#gold)"/>
+</svg>
