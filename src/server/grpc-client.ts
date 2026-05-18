@@ -26,30 +26,35 @@ import { TranslateServiceClient } from './generated/translate';
 
 const GRPC_URL = process.env['TRANSLATE_GRPC_URL'] ?? 'localhost:5100';
 
-/** Default deadline for fast unary gRPC calls (30 seconds). */
-const DEADLINE_MS = 30_000;
+/** Default deadline for fast calls that don't involve ML inference (ms). */
+const FAST_DEADLINE_MS = 30_000;
+
+/** Parse an optional numeric env var; returns undefined when not set or invalid. */
+function parseOptionalMs(name: string): number | undefined {
+  const raw = Number(process.env[name]);
+  return Number.isFinite(raw) && raw > 0 ? raw : undefined;
+}
 
 /**
- * Per-operation deadline for TranslateText — CPU inference can take 20-60 s
- * on large models; additionally, the SemaphoreSlim in M2M100/NLLB serialises
- * concurrent requests so the second request must wait for the first.
- * Override with TRANSLATE_DEADLINE_MS env var (milliseconds).
+ * Deadline for TranslateText / TranslateAudio (text translation step).
+ * Mirrors TRANSLATE_TIMEOUT_MS on the gRPC service — set both to the same
+ * value so client deadline and server inference timeout are in sync.
+ * Unset = no deadline.
  */
-const _rawTranslateDeadline = Number(process.env['TRANSLATE_DEADLINE_MS']);
-export const TRANSLATE_DEADLINE_MS =
-  Number.isFinite(_rawTranslateDeadline) && _rawTranslateDeadline > 0
-    ? _rawTranslateDeadline
-    : 120_000;
+export const TRANSLATE_TIMEOUT_MS = parseOptionalMs('TRANSLATE_TIMEOUT_MS');
 
 /**
- * Per-operation deadline for TranscribeAudio — audio processing takes longer.
- * Override with TRANSCRIBE_DEADLINE_MS env var (milliseconds).
+ * Deadline for TranslateLocalization (whole JSON file, many strings).
+ * Unset = no deadline — recommended because file size is unpredictable.
  */
-const _rawTranscribeDeadline = Number(process.env['TRANSCRIBE_DEADLINE_MS']);
-export const TRANSCRIBE_DEADLINE_MS =
-  Number.isFinite(_rawTranscribeDeadline) && _rawTranscribeDeadline > 0
-    ? _rawTranscribeDeadline
-    : 120_000;
+export const LOCALIZE_TIMEOUT_MS = parseOptionalMs('LOCALIZE_TIMEOUT_MS');
+
+/**
+ * Deadline for TranscribeAudio / TranslateAudio (Whisper STT step).
+ * Override with TRANSCRIBE_TIMEOUT_MS env var (milliseconds).
+ * Unset = no deadline.
+ */
+export const TRANSCRIBE_TIMEOUT_MS = parseOptionalMs('TRANSCRIBE_TIMEOUT_MS');
 
 let _client: ITranslateServiceClient | null = null;
 
@@ -62,7 +67,7 @@ function getClient(): ITranslateServiceClient {
   return _client;
 }
 
-/** Promisify a unary gRPC call with a configurable deadline. */
+/** Promisify a unary gRPC call with an optional deadline. */
 function call<Req, Res>(
   method: (
     req: Req,
@@ -71,11 +76,12 @@ function call<Req, Res>(
     cb: (err: Error | null, res: Res) => void,
   ) => unknown,
   request: Req,
-  deadlineMs = DEADLINE_MS,
+  deadlineMs?: number,
 ): Promise<Res> {
-  const options: Partial<CallOptions> = {
-    deadline: new Date(Date.now() + deadlineMs),
-  };
+  const options: Partial<CallOptions> =
+    deadlineMs !== undefined
+      ? { deadline: new Date(Date.now() + deadlineMs) }
+      : {};
   return new Promise<Res>((resolve, reject) =>
     method.call(getClient(), request, new Metadata(), options, (err, res) =>
       err ? reject(err) : resolve(res),
@@ -97,7 +103,7 @@ export function translateText(
     // biome-ignore lint/suspicious/noExplicitAny: grpc-js method overloads require cast
     getClient().translateText.bind(getClient()) as any,
     req,
-    TRANSLATE_DEADLINE_MS,
+    TRANSLATE_TIMEOUT_MS,
   );
 }
 
@@ -105,14 +111,18 @@ export function detectLanguage(
   req: DetectLanguageRequest,
 ): Promise<DetectLanguageResponse> {
   // biome-ignore lint/suspicious/noExplicitAny: grpc-js method overloads require cast
-  return call(getClient().detectLanguage.bind(getClient()) as any, req);
+  return call(getClient().detectLanguage.bind(getClient()) as any, req, FAST_DEADLINE_MS);
 }
 
 export function translateLocalization(
   req: TranslateLocalizationRequest,
 ): Promise<TranslateLocalizationResponse> {
-  // biome-ignore lint/suspicious/noExplicitAny: grpc-js method overloads require cast
-  return call(getClient().translateLocalization.bind(getClient()) as any, req);
+  return call(
+    // biome-ignore lint/suspicious/noExplicitAny: grpc-js method overloads require cast
+    getClient().translateLocalization.bind(getClient()) as any,
+    req,
+    LOCALIZE_TIMEOUT_MS,
+  );
 }
 
 export function transcribeAudio(
@@ -122,7 +132,7 @@ export function transcribeAudio(
     // biome-ignore lint/suspicious/noExplicitAny: grpc-js method overloads require cast
     getClient().transcribeAudio.bind(getClient()) as any,
     req,
-    TRANSCRIBE_DEADLINE_MS,
+    TRANSCRIBE_TIMEOUT_MS,
   );
 }
 
@@ -133,7 +143,7 @@ export function translateAudio(
     // biome-ignore lint/suspicious/noExplicitAny: grpc-js method overloads require cast
     getClient().translateAudio.bind(getClient()) as any,
     req,
-    TRANSCRIBE_DEADLINE_MS,
+    TRANSCRIBE_TIMEOUT_MS,
   );
 }
 
@@ -141,7 +151,7 @@ export function synthesizeSpeech(
   req: SynthesizeSpeechRequest,
 ): Promise<SynthesizeSpeechResponse> {
   // biome-ignore lint/suspicious/noExplicitAny: grpc-js method overloads require cast
-  return call(getClient().synthesizeSpeech.bind(getClient()) as any, req);
+  return call(getClient().synthesizeSpeech.bind(getClient()) as any, req, FAST_DEADLINE_MS);
 }
 
 export function grpcUrl(): string {

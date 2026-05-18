@@ -183,6 +183,7 @@ export function createApiRouter(): Router {
       target_language,
       target_voice,
       language_format,
+      model,
     } = req.body as TranslateAudioRequest;
     if (!audio_data_base64 || !target_language) {
       res

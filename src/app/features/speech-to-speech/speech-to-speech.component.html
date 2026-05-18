@@ -10,7 +10,43 @@
           <label class="form-label" for="sts-file">Audio file (.wav)</label>
           <input id="sts-file" type="file" accept=".wav" class="form-control"
                  (change)="onFileChange($event)"
+                 [disabled]="recorder.state() === 'recording'"
                  aria-describedby="sts-file-hint">
+
+          <!-- Record / Stop controls -->
+          <div class="mt-2 d-flex align-items-center gap-2">
+            @if (recorder.state() === 'recording') {
+              <span class="recording-dot" aria-hidden="true"></span>
+              <button type="button" class="btn btn-sm btn-danger"
+                      (click)="stopRecording()">
+                <span aria-hidden="true">⏹</span> Stop ({{ recorder.elapsedSeconds() }}s)
+              </button>
+            } @else {
+              <button type="button" class="btn btn-sm btn-outline-secondary"
+                      (click)="startRecording()">
+                <span aria-hidden="true">🎙</span> Record
+              </button>
+            }
+          </div>
+
+          <!-- Recording state announcements for screen readers -->
+          <div aria-live="polite" class="visually-hidden">
+            @if (recorder.state() === 'recording') {
+              Recording in progress.
+            }
+          </div>
+
+          @if (recorder.errorMessage()) {
+            <div class="text-danger small mt-1" role="alert">
+              {{ recorder.errorMessage() }}
+              <button type="button" class="btn btn-link btn-sm p-0 ms-1 text-danger"
+                      (click)="recorder.resetError()"
+                      aria-label="Dismiss microphone error">
+                Dismiss
+              </button>
+            </div>
+          }
+
           <div id="sts-file-hint" class="form-text">Only WAV format is supported.</div>
         </div>
 
@@ -50,10 +86,19 @@
         </div>
 
         <div class="col-md-3">
+          <label class="form-label" for="sts-model">Model</label>
+          <select id="sts-model" class="form-select" formControlName="model">
+            <option value="">Default</option>
+            @for (m of caps.availableModels(); track m) {
+              <option [value]="m">{{ m }}</option>
+            }
+          </select>
+        </div>
+
+        <div class="col-md-3">
           <label class="form-label" for="sts-fmt">Language format</label>
           <select id="sts-fmt" class="form-select" formControlName="language_format">
             <option value="bcp47">BCP-47</option>
-            <option value="flores200">Flores-200</option>
             <option value="native">Native</option>
           </select>
         </div>
@@ -61,7 +106,7 @@
 
       <div class="d-flex gap-2">
         <app-submit-button
-          [disabled]="!selectedFile() || form.invalid"
+          [disabled]="!selectedFile() || form.invalid || recorder.state() === 'recording'"
           [loading]="loading()"
           label="Translate"
           loadingLabel="Translating…" />

@@ -90,6 +90,7 @@ export interface TranslateAudioRequest {
   target_language: string;
   target_voice?: string;
   language_format?: string;
+  model?: string;
 }
 
 export interface TranslateAudioResponse {

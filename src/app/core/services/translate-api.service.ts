@@ -51,6 +51,7 @@ export class TranslateApiService {
     sourceLanguage = 'auto',
     targetVoice = '',
     languageFormat = 'bcp47',
+    model = '',
   ): Observable<TranslateAudioResponse> {
     return new Observable<string>((observer) => {
       const reader = new FileReader();
@@ -72,6 +73,7 @@ export class TranslateApiService {
           target_language: targetLanguage,
           target_voice: targetVoice || undefined,
           language_format: languageFormat,
+          model: model || undefined,
         };
         return this.http.post<TranslateAudioResponse>(
           '/api/translate-audio',

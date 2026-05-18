@@ -115,11 +115,13 @@ TRANSLATE_GRPC_URL=my-server:5100 npm start
 
 ## Environment Variables
 
-| Variable                 | Default          | Description                                            |
-| ------------------------ | ---------------- | ------------------------------------------------------ |
-| `TRANSLATE_GRPC_URL`     | `localhost:5100` | gRPC service address                                   |
-| `PORT`                   | `4000`           | HTTP server port                                       |
-| `TRANSCRIBE_DEADLINE_MS` | `120000`         | gRPC deadline for TranscribeAudio calls (milliseconds) |
+| Variable                | Default          | Description                                                        |
+| ----------------------- | ---------------- | ------------------------------------------------------------------ |
+| `TRANSLATE_GRPC_URL`    | `localhost:5100` | gRPC service address                                               |
+| `PORT`                  | `4000`           | HTTP server port                                                   |
+| `TRANSLATE_TIMEOUT_MS`  | _(none)_         | Deadline for TranslateText (ms). Unset = no deadline               |
+| `LOCALIZE_TIMEOUT_MS`   | _(none)_         | Deadline for TranslateLocalization (ms). Unset = no deadline       |
+| `TRANSCRIBE_TIMEOUT_MS` | _(none)_         | Deadline for TranscribeAudio / TranslateAudio. Unset = no deadline |
 
 ---
 
@@ -147,13 +149,14 @@ TRANSLATE_GRPC_URL=my-server:5100 npm start
 Browser
   └─► Express SSR (4000)
         └─► Router (server/routes.ts)
-              ├─ GET /api/capabilities   ─► getCapabilities()
-              ├─ POST /api/translate     ─► translateText()
-              ├─ POST /api/detect        ─► detectLanguage()
-              ├─ POST /api/localize      ─► translateLocalization()
-              └─ POST /api/transcribe    ─► transcribeAudio()
-                                               └─► @grpc/grpc-js → localhost:5100
-                                                     (30 s deadline; 120 s for transcribe)
+              ├─ GET /api/capabilities    ─► getCapabilities()        (30 s)
+              ├─ POST /api/translate      ─► translateText()          (TRANSLATE_TIMEOUT_MS)
+              ├─ POST /api/detect         ─► detectLanguage()         (30 s)
+              ├─ POST /api/localize       ─► translateLocalization()  (LOCALIZE_TIMEOUT_MS)
+              ├─ POST /api/transcribe     ─► transcribeAudio()        (TRANSCRIBE_TIMEOUT_MS)
+              ├─ POST /api/translate-audio ─► translateAudio()        (TRANSCRIBE_TIMEOUT_MS)
+              └─ POST /api/synthesize     ─► synthesizeSpeech()       (30 s)
+                                                └─► @grpc/grpc-js → localhost:5100
 ```
 
 ### gRPC client (generated)
@@ -172,11 +175,11 @@ After updating `translate.proto`, run `npm run generate` and the TypeScript comp
 
 Three launch configurations are pre-configured in `.vscode/launch.json`:
 
-| Config                      | Description                                                                                                                                             |
-| --------------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------- |
-| **Open browser (ng serve)** | Starts `ng serve`, opens Chrome at 4200                                                                                                                 |
+| Config                      | Description                                                                                                                                                    |
+| --------------------------- | -------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| **Open browser (ng serve)** | Starts `ng serve`, opens Chrome at 4200                                                                                                                        |
 | **Debug SSR backend**       | Builds in dev mode, launches `server.mjs` with `--enable-source-maps`. Set breakpoints in `server.ts` / `server/grpc-client.ts`. Server runs on **port 4000**. |
-| **Debug SSR + Chrome**      | Compound: SSR debugger + Chrome side by side                                                                                                            |
+| **Debug SSR + Chrome**      | Compound: SSR debugger + Chrome side by side                                                                                                                   |
 
 Press **F5** → pick a config → breakpoints work in TypeScript source files.
 
@@ -252,15 +255,15 @@ src/
 
 ## Built With
 
-| Layer     | Technology                                       |
-| --------- | ------------------------------------------------ |
-| Framework | [Angular 21](https://angular.dev) (standalone components, signals, SSR) |
-| UI        | [Bootstrap 5](https://getbootstrap.com), dark theme |
-| Server    | [Express 5](https://expressjs.com) + `@angular/ssr` |
-| gRPC      | [`@grpc/grpc-js`](https://github.com/grpc/grpc-node) + ts-proto generated client |
-| Code gen  | [buf CLI](https://buf.build) + [ts-proto](https://github.com/stephenh/ts-proto) 2.x |
-| Linting   | [Biome](https://biomejs.dev) 2.x                 |
-| Testing   | [Playwright](https://playwright.dev) 1.x         |
+| Layer     | Technology                                                                                      |
+| --------- | ----------------------------------------------------------------------------------------------- |
+| Framework | [Angular 21](https://angular.dev) (standalone components, signals, SSR)                         |
+| UI        | [Bootstrap 5](https://getbootstrap.com), dark theme                                             |
+| Server    | [Express 5](https://expressjs.com) + `@angular/ssr`                                             |
+| gRPC      | [`@grpc/grpc-js`](https://github.com/grpc/grpc-node) + ts-proto generated client                |
+| Code gen  | [buf CLI](https://buf.build) + [ts-proto](https://github.com/stephenh/ts-proto) 2.x             |
+| Linting   | [Biome](https://biomejs.dev) 2.x                                                                |
+| Testing   | [Playwright](https://playwright.dev) 1.x                                                        |
 | Container | Docker · [GHCR](https://github.com/lopatnov/translate-angular/pkgs/container/translate-angular) |
 
 ---
