@@ -1,8 +1,8 @@
 import {
   ChangeDetectionStrategy,
   Component,
-  DestroyRef,
   computed,
+  DestroyRef,
   inject,
   signal,
 } from '@angular/core';
@@ -95,8 +95,13 @@ export class SpeechToSpeechComponent {
     this.result.set(null);
     this.player.clear();
 
-    const { source_language, target_language, target_voice, language_format, model } =
-      this.form.getRawValue();
+    const {
+      source_language,
+      target_language,
+      target_voice,
+      language_format,
+      model,
+    } = this.form.getRawValue();
 
     this.api
       .translateAudio(

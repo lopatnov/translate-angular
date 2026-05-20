@@ -110,8 +110,12 @@ export function translateText(
 export function detectLanguage(
   req: DetectLanguageRequest,
 ): Promise<DetectLanguageResponse> {
-  // biome-ignore lint/suspicious/noExplicitAny: grpc-js method overloads require cast
-  return call(getClient().detectLanguage.bind(getClient()) as any, req, FAST_DEADLINE_MS);
+  return call(
+    // biome-ignore lint/suspicious/noExplicitAny: grpc-js method overloads require cast
+    getClient().detectLanguage.bind(getClient()) as any,
+    req,
+    FAST_DEADLINE_MS,
+  );
 }
 
 export function translateLocalization(
@@ -150,8 +154,12 @@ export function translateAudio(
 export function synthesizeSpeech(
   req: SynthesizeSpeechRequest,
 ): Promise<SynthesizeSpeechResponse> {
-  // biome-ignore lint/suspicious/noExplicitAny: grpc-js method overloads require cast
-  return call(getClient().synthesizeSpeech.bind(getClient()) as any, req, FAST_DEADLINE_MS);
+  return call(
+    // biome-ignore lint/suspicious/noExplicitAny: grpc-js method overloads require cast
+    getClient().synthesizeSpeech.bind(getClient()) as any,
+    req,
+    FAST_DEADLINE_MS,
+  );
 }
 
 export function grpcUrl(): string {
