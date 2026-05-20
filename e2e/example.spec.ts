@@ -9,7 +9,7 @@ test.describe('Navigation', () => {
   });
 
   test('page title is set', async ({ page }) => {
-    await expect(page).toHaveTitle(/TranslateAngular/);
+    await expect(page).toHaveTitle(/Translate Studio/);
   });
 
   test('sidebar brand is visible', async ({ page }) => {
