@@ -19,7 +19,7 @@ test.describe('Dashboard', () => {
     const errorAlert = page.locator('[role="alert"].alert-danger');
     const capsGrid = page.locator('.row.g-4');
 
-    await expect(spinner.or(errorAlert).or(capsGrid)).toBeVisible({
+    await expect(spinner.or(errorAlert).or(capsGrid).first()).toBeVisible({
       timeout: 15_000,
     });
   });
@@ -45,6 +45,8 @@ test.describe('Dashboard', () => {
 
   test('gRPC URL hint shown in sidebar', async ({ page }) => {
     // Footer always shows the configured gRPC target.
-    await expect(page.getByText(/localhost:5100/)).toBeVisible();
+    await expect(
+      page.locator('aside').getByText(/localhost:5100/),
+    ).toBeVisible();
   });
 });

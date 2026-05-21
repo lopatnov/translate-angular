@@ -10,6 +10,7 @@ import {
 import { RouterLink, RouterLinkActive, RouterOutlet } from '@angular/router';
 import { CreditsComponent } from '@app/shared/components/credits/credits.component';
 import { AppErrorService } from '@core/services/app-error.service';
+import { CapabilitiesService } from '@core/services/capabilities.service';
 
 @Component({
   selector: 'app-root',
@@ -22,6 +23,7 @@ export class App {
   protected readonly title = signal('Translate Studio');
   private readonly platformId = inject(PLATFORM_ID);
   protected readonly appError = inject(AppErrorService);
+  protected readonly caps = inject(CapabilitiesService);
 
   constructor() {
     effect(() => {

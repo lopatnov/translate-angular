@@ -40,7 +40,7 @@ export default defineConfig({
     command: 'npm run start',
     url: 'http://localhost:4200',
     reuseExistingServer: !process.env.CI,
-    /* Allow up to 2 minutes for `ng serve` to complete its first build */
-    timeout: 120_000,
+    /* Allow up to 3 minutes for `ng serve` to complete its first build (CI is slower) */
+    timeout: process.env.CI ? 180_000 : 120_000,
   },
 });

@@ -13,11 +13,11 @@
 @if (caps.error()) {
   <div class="alert alert-danger" role="alert">
     <strong>Cannot reach gRPC service.</strong> {{ caps.error() }}<br>
-    <small class="text-muted">
-      Make sure the service is running on <code>localhost:5100</code>.
+    <small>
+      Make sure the service is running on <code class="text-reset">localhost:5100</code>.
     </small>
     <div class="mt-2">
-      <button type="button" class="btn btn-sm btn-outline-danger" (click)="caps.refresh()">
+      <button type="button" class="btn btn-sm btn-danger" (click)="caps.refresh()">
         Retry
       </button>
     </div>
@@ -50,6 +50,16 @@
               }
             </dd>
           </dl>
+          @if (caps.ttsAvailable() && caps.availableVoices().length > 0) {
+            <div class="mt-3 pt-3 border-top">
+              <p class="small text-muted mb-2">TTS voices</p>
+              <div class="d-flex flex-wrap gap-1">
+                @for (v of caps.availableVoices(); track v) {
+                  <span class="badge bg-info text-dark">{{ v }}</span>
+                }
+              </div>
+            </div>
+          }
         </div>
       </div>
     </div>
@@ -80,6 +90,15 @@
           <a routerLink="/localize" class="btn btn-outline-secondary">Localization files</a>
           @if (caps.sttAvailable()) {
             <a routerLink="/transcribe" class="btn btn-outline-secondary">Speech to text</a>
+          }
+          @if (caps.ttsAvailable()) {
+            <a routerLink="/synthesize" class="btn btn-outline-secondary">Text to speech</a>
+          }
+          @if (caps.sttAvailable() && caps.ttsAvailable()) {
+            <a routerLink="/translate-audio" class="btn btn-outline-secondary">Speech to speech</a>
+          }
+          @if (caps.sttAvailable()) {
+            <a routerLink="/live" class="btn btn-outline-secondary">Live translation</a>
           }
         </div>
       </div>

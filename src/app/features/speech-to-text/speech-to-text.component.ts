@@ -5,12 +5,14 @@ import {
   inject,
   signal,
 } from '@angular/core';
+import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
 import { FormBuilder, ReactiveFormsModule, Validators } from '@angular/forms';
 import { CopyButtonComponent } from '@app/shared/components/copy-button/copy-button.component';
 import { ErrorAlertComponent } from '@app/shared/components/error-alert/error-alert.component';
 import { LanguageSelectComponent } from '@app/shared/components/language-select/language-select.component';
 import { PageHeaderComponent } from '@app/shared/components/page-header/page-header.component';
 import { SubmitButtonComponent } from '@app/shared/components/submit-button/submit-button.component';
+import { RecorderService } from '@core/services/recorder.service';
 import { TranslateApiService } from '@core/services/translate-api.service';
 import { apiErrorMessage } from '@core/utils/api-error.util';
 import { useLangFormat } from '@core/utils/lang-format.util';
@@ -36,12 +38,14 @@ export class SpeechToTextComponent {
   private readonly fb = inject(FormBuilder);
   private readonly destroyRef = inject(DestroyRef);
 
+  protected readonly recorder = inject(RecorderService);
   protected readonly languages = LANGUAGES;
   protected readonly formats = LANGUAGE_FORMATS;
   protected readonly loading = signal(false);
   protected readonly error = signal<string | null>(null);
   protected readonly result = signal<TranscribeResponse | null>(null);
   protected readonly selectedFile = signal<File | null>(null);
+
   protected readonly form = this.fb.nonNullable.group({
     language: ['auto'],
     language_format: ['bcp47'],
@@ -66,6 +70,29 @@ export class SpeechToTextComponent {
   onFileChange(event: Event): void {
     const input = event.target as HTMLInputElement;
     this.selectedFile.set(input.files?.[0] ?? null);
+    // Clear any previous recorder error when the user picks a file manually.
+    this.recorder.resetError();
+  }
+
+  startRecording(): void {
+    this.error.set(null);
+    this.result.set(null);
+
+    this.recorder
+      .start()
+      .pipe(takeUntilDestroyed(this.destroyRef))
+      .subscribe({
+        next: (file) => {
+          this.selectedFile.set(file);
+        },
+        error: () => {
+          // errorMessage is set on RecorderService.state; no duplicate alert needed.
+        },
+      });
+  }
+
+  stopRecording(): void {
+    this.recorder.stop();
   }
 
   submit(): void {
@@ -92,6 +119,7 @@ export class SpeechToTextComponent {
 
   clear(): void {
     this.selectedFile.set(null);
+    this.recorder.resetError();
     const fmt = this.form.controls.language_format.value;
     this.form.reset({
       language: fmt === 'native' ? '' : 'auto',

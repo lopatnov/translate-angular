@@ -36,4 +36,25 @@ export const routes: Routes = [
         (m) => m.SpeechToTextComponent,
       ),
   },
+  {
+    path: 'synthesize',
+    loadComponent: () =>
+      import('./features/text-to-speech/text-to-speech.component').then(
+        (m) => m.TextToSpeechComponent,
+      ),
+  },
+  {
+    path: 'translate-audio',
+    loadComponent: () =>
+      import('./features/speech-to-speech/speech-to-speech.component').then(
+        (m) => m.SpeechToSpeechComponent,
+      ),
+  },
+  {
+    path: 'live',
+    loadComponent: () =>
+      import('./features/live-translation/live-translation.component').then(
+        (m) => m.LiveTranslationComponent,
+      ),
+  },
 ];

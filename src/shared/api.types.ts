@@ -19,6 +19,7 @@ export interface TranslateRequest {
   source_language?: string;
   target_language: string;
   model?: string;
+  context?: string;
   language_format?: string;
 }
 
@@ -68,6 +69,35 @@ export interface TranscribeResponse {
   fullText: string;
   detectedLanguage?: string;
   segments: TranscriptionSegment[];
+}
+
+export interface SynthesizeRequest {
+  text: string;
+  language?: string;
+  voice?: string;
+  speed?: number;
+  language_format?: string;
+}
+
+export interface SynthesizeResponse {
+  audio_data_base64: string;
+  sample_rate: number;
+}
+
+export interface TranslateAudioRequest {
+  audio_data_base64: string;
+  source_language?: string;
+  target_language: string;
+  target_voice?: string;
+  language_format?: string;
+  model?: string;
+}
+
+export interface TranslateAudioResponse {
+  transcription: string;
+  translated_text: string;
+  audio_data_base64: string;
+  sample_rate: number;
 }
 
 export interface ApiError {

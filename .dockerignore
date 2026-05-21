@@ -1,0 +1,15 @@
+.git
+.github
+.angular
+.vscode
+node_modules
+dist
+coverage
+test-results
+playwright-report
+blob-report
+accessibility-snapshots
+*.md
+*.log
+.env
+.env.local

@@ -6,8 +6,12 @@ import type {
   DetectResponse,
   LocalizeRequest,
   LocalizeResponse,
+  SynthesizeRequest,
+  SynthesizeResponse,
   TranscribeRequest,
   TranscribeResponse,
+  TranslateAudioRequest,
+  TranslateAudioResponse,
   TranslateRequest,
   TranslateResponse,
 } from '@shared/api.types';
@@ -31,6 +35,52 @@ export class TranslateApiService {
 
   localize(req: LocalizeRequest): Observable<LocalizeResponse> {
     return this.http.post<LocalizeResponse>('/api/localize', req);
+  }
+
+  synthesize(req: SynthesizeRequest): Observable<SynthesizeResponse> {
+    return this.http.post<SynthesizeResponse>('/api/synthesize', req);
+  }
+
+  /**
+   * Read a WAV file, encode as base64, and POST to /api/translate-audio.
+   * Returns transcription + translated text + synthesized WAV as base64.
+   */
+  translateAudio(
+    file: File,
+    targetLanguage: string,
+    sourceLanguage = 'auto',
+    targetVoice = '',
+    languageFormat = 'bcp47',
+    model = '',
+  ): Observable<TranslateAudioResponse> {
+    return new Observable<string>((observer) => {
+      const reader = new FileReader();
+      reader.onload = () => {
+        const base64 = (reader.result as string).split(',')[1];
+        observer.next(base64);
+        observer.complete();
+      };
+      reader.onerror = () => {
+        observer.error(reader.error ?? new Error('Failed to read audio file'));
+      };
+      reader.readAsDataURL(file);
+      return () => reader.abort();
+    }).pipe(
+      switchMap((audio_data_base64) => {
+        const req: TranslateAudioRequest = {
+          audio_data_base64,
+          source_language: sourceLanguage,
+          target_language: targetLanguage,
+          target_voice: targetVoice || undefined,
+          language_format: languageFormat,
+          model: model || undefined,
+        };
+        return this.http.post<TranslateAudioResponse>(
+          '/api/translate-audio',
+          req,
+        );
+      }),
+    );
   }
 
   /**

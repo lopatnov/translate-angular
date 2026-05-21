@@ -1,0 +1,15 @@
+{
+  "extends": ["stylelint-config-standard-scss"],
+  "rules": {
+    "no-descending-specificity": null,
+    "scss/operator-no-newline-after": null
+  },
+  "overrides": [
+    {
+      "files": ["src/styles.scss"],
+      "rules": {
+        "scss/at-extend-no-missing-placeholder": null
+      }
+    }
+  ]
+}

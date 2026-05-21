@@ -1,0 +1,87 @@
+<app-page-header
+  title="Text to speech"
+  subtitle="Synthesize speech from text using Piper TTS. Select a language to choose the voice." />
+
+<div class="card section-card mb-4">
+  <div class="card-body">
+    <form [formGroup]="form" (ngSubmit)="submit()">
+      <div class="mb-3">
+        <label class="form-label" for="tts-text">Text</label>
+        <textarea id="tts-text" class="form-control" formControlName="text"
+                  rows="4" placeholder="Enter text to synthesize…"
+                  [class.is-invalid]="form.controls.text.invalid && form.controls.text.touched">
+        </textarea>
+        <div class="invalid-feedback">Text is required</div>
+      </div>
+
+      <div class="row g-3 mb-3">
+        <div class="col-md-4">
+          <label class="form-label" for="tts-lang">Voice / Language</label>
+          @if (voices().length > 0) {
+            <select id="tts-lang" class="form-select" formControlName="language">
+              <option value="">— auto —</option>
+              @for (v of voices(); track v) {
+                <option [value]="v">{{ v }}</option>
+              }
+            </select>
+          } @else {
+            <input id="tts-lang" class="form-control" formControlName="language"
+                   placeholder="e.g. en, ru, uk">
+          }
+          <div class="form-text">From configured Piper voices.</div>
+        </div>
+
+        <div class="col-md-4">
+          <label class="form-label" for="tts-voice">Speaker <span class="text-muted">(optional)</span></label>
+          <input id="tts-voice" class="form-control" formControlName="voice"
+                 placeholder="e.g. lada, mykyta, tetiana">
+          <div class="form-text">For multi-speaker voices only.</div>
+        </div>
+
+        <div class="col-md-4">
+          <label class="form-label" for="tts-speed">
+            Speed: <strong>{{ form.controls.speed.value }}×</strong>
+          </label>
+          <input id="tts-speed" type="range" class="form-range" formControlName="speed"
+                 min="0.5" max="2.0" step="0.05">
+          <div class="d-flex justify-content-between small text-muted">
+            <span>0.5× slow</span>
+            <span>2.0× fast</span>
+          </div>
+        </div>
+      </div>
+
+      <div class="d-flex gap-2">
+        <app-submit-button
+          [disabled]="form.invalid"
+          [loading]="loading()"
+          label="Synthesize"
+          loadingLabel="Synthesizing…" />
+        <button type="button" class="btn btn-outline-secondary" (click)="clear()">Clear</button>
+      </div>
+    </form>
+  </div>
+</div>
+
+<app-error-alert [message]="error()" />
+
+@if (player.audioUrl()) {
+  <div class="card section-card mb-3">
+    <div class="card-header d-flex justify-content-between align-items-center">
+      <h3 class="h6 mb-0">Result</h3>
+      @if (player.sampleRate()) {
+        <span class="badge bg-secondary">{{ player.sampleRate() }} Hz</span>
+      }
+    </div>
+    <div class="card-body">
+      <!-- Native audio element — browser handles play/pause/seek. -->
+      <audio [src]="player.audioUrl()!" controls class="w-100 mb-3" aria-label="Synthesized speech">
+        Your browser does not support the audio element.
+      </audio>
+
+      <button type="button" class="btn btn-outline-primary btn-sm" (click)="download()">
+        ⬇ Download WAV
+      </button>
+    </div>
+  </div>
+}

@@ -1,0 +1,186 @@
+import { Injectable, signal } from '@angular/core';
+import { encodeWav } from '@core/utils/wav-encoder';
+import { Observable, type Subscriber } from 'rxjs';
+
+export type RecorderState = 'idle' | 'recording' | 'error';
+
+/** MIME types tried in order of preference. */
+const CANDIDATE_TYPES = [
+  'audio/webm;codecs=opus',
+  'audio/webm',
+  'audio/ogg;codecs=opus',
+  'audio/mp4',
+];
+
+function pickMimeType(): string | undefined {
+  return CANDIDATE_TYPES.find((t) => MediaRecorder.isTypeSupported(t));
+}
+
+/**
+ * Singleton service that wraps MediaRecorder.
+ * Call `start()` to begin recording — it returns an Observable that emits
+ * one `File` (WAV) when `stop()` is called, then completes.
+ * The WAV file is mono, 16-bit PCM at the browser's native sample rate;
+ * the backend (NAudio) resamples it to 16 kHz for Whisper.
+ */
+@Injectable({ providedIn: 'root' })
+export class RecorderService {
+  /** Current recording state. */
+  readonly state = signal<RecorderState>('idle');
+  /** Elapsed recording time in whole seconds. */
+  readonly elapsedSeconds = signal(0);
+  /** Human-readable error set when state === 'error'. */
+  readonly errorMessage = signal<string | null>(null);
+
+  private mediaRecorder: MediaRecorder | null = null;
+  private chunks: Blob[] = [];
+  private timerHandle: ReturnType<typeof setInterval> | null = null;
+
+  /**
+   * Request microphone access and start recording.
+   * Emits one WAV `File` on stop, then completes.
+   * Errors when microphone access is denied or encoding fails.
+   */
+  start(): Observable<File> {
+    // Ensure any previous session is cleaned up before starting a new one.
+    this.stop();
+    return new Observable<File>((subscriber) => {
+      this.chunks = [];
+      this.elapsedSeconds.set(0);
+      this.errorMessage.set(null);
+
+      navigator.mediaDevices
+        .getUserMedia({
+          audio: {
+            // Disable all Chrome audio processing. Chrome's processing pipeline
+            // (especially echoCancellation) can zero out the signal in certain
+            // hardware configurations, resulting in [BLANK_AUDIO] from Whisper.
+            echoCancellation: false,
+            noiseSuppression: false,
+            autoGainControl: false,
+          },
+          video: false,
+        })
+        .then((stream) => {
+          const mimeType = pickMimeType();
+          this.mediaRecorder = new MediaRecorder(
+            stream,
+            mimeType ? { mimeType } : {},
+          );
+
+          this.mediaRecorder.ondataavailable = (e) => {
+            if (e.data.size > 0) this.chunks.push(e.data);
+          };
+
+          this.mediaRecorder.onstop = () =>
+            this.handleStop(stream, subscriber, mimeType);
+
+          // timeslice=250ms ensures Chrome flushes audio chunks regularly;
+          // without it, Chrome may produce a malformed webm that decodes as silence.
+          this.mediaRecorder.start(250);
+          this.state.set('recording');
+          this._startTimer();
+        })
+        .catch((err: unknown) => this.handleMicError(err, subscriber));
+
+      // Teardown: stop recording if the subscriber unsubscribes early.
+      return () => this.stop();
+    });
+  }
+
+  /** Stop an active recording. The Observable will emit the WAV file and complete. */
+  stop(): void {
+    if (this.mediaRecorder?.state === 'recording') {
+      this.mediaRecorder.stop();
+    }
+    this._clearTimer();
+  }
+
+  /**
+   * Called when MediaRecorder fires `onstop`. Stops media tracks, decodes the
+   * recorded Blob from the browser's codec format to 16-bit WAV, and delivers
+   * the result to the subscriber.  Extracted from `start()` to reduce cognitive
+   * complexity.
+   */
+  private handleStop(
+    stream: MediaStream,
+    subscriber: Subscriber<File>,
+    mimeType: string | undefined,
+  ): void {
+    this._clearTimer();
+    for (const t of stream.getTracks()) {
+      t.stop();
+    }
+
+    // Skip expensive decoding when the subscriber has already unsubscribed.
+    if (subscriber.closed) return;
+
+    const blob = new Blob(this.chunks, { type: mimeType ?? 'audio/webm' });
+    blob
+      .arrayBuffer()
+      .then(async (ab) => {
+        // Close AudioContext after decoding — browsers enforce a strict
+        // limit on simultaneous AudioContext instances.
+        const ctx = new AudioContext();
+        try {
+          return await ctx.decodeAudioData(ab);
+        } finally {
+          void ctx.close();
+        }
+      })
+      .then((decoded) => {
+        const wavBuffer = encodeWav(decoded);
+        const file = new File([wavBuffer], 'recording.wav', {
+          type: 'audio/wav',
+        });
+        this.state.set('idle');
+        subscriber.next(file);
+        subscriber.complete();
+      })
+      .catch((err: unknown) => {
+        const msg =
+          err instanceof Error ? err.message : 'Audio encoding failed';
+        this.state.set('error');
+        this.errorMessage.set(msg);
+        subscriber.error(new Error(msg));
+      });
+  }
+
+  /** Reset error state so the Record button becomes available again. */
+  resetError(): void {
+    if (this.state() === 'error') {
+      this.state.set('idle');
+      this.errorMessage.set(null);
+    }
+  }
+
+  /** Handles `getUserMedia` failures: sets error state and notifies subscriber. */
+  private handleMicError(err: unknown, subscriber: Subscriber<File>): void {
+    const name = err instanceof DOMException ? err.name : '';
+    const micUnavailable =
+      err instanceof Error
+        ? `Microphone unavailable: ${err.message}`
+        : 'Microphone unavailable.';
+    const msg =
+      name === 'NotAllowedError' || name === 'PermissionDeniedError'
+        ? 'Microphone access denied. Allow it in browser settings and try again.'
+        : micUnavailable;
+    this.state.set('error');
+    this.errorMessage.set(msg);
+    subscriber.error(new Error(msg));
+  }
+
+  /** Starts the elapsed-seconds ticker. */
+  private _startTimer(): void {
+    this.timerHandle = setInterval(() => {
+      this.elapsedSeconds.update((s) => s + 1);
+    }, 1000);
+  }
+
+  private _clearTimer(): void {
+    if (this.timerHandle !== null) {
+      clearInterval(this.timerHandle);
+      this.timerHandle = null;
+    }
+  }
+}
