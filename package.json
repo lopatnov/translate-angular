@@ -1,6 +1,6 @@
 {
   "name": "@lopatnov/translate-angular",
-  "version": "2.0.0",
+  "version": "3.0.0",
   "description": "Manual testing UI for the Lopatnov.Translate gRPC service — Angular 21 + SSR + Express.",
   "keywords": [
     "angular",
