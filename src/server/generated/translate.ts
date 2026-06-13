@@ -29,7 +29,7 @@ export interface TranslateTextRequest {
   model: string;
   /** optional: free-form hint for the translation (reserved for LLM-based models) */
   context: string;
-  /** format for source_language/target_language/detected_language: "bcp47" (default), "flores200", "native" */
+  /** format for source_language/target_language/detected_language: "bcp47" (default) or "native" (model-specific codes) */
   languageFormat: string;
 }
 
@@ -41,7 +41,7 @@ export interface TranslateTextResponse {
 
 export interface DetectLanguageRequest {
   text: string;
-  /** format for the returned language code: "bcp47" (default), "flores200", "native" */
+  /** format for the returned language code: "bcp47" (default) or "native" (model-specific codes) */
   languageFormat: string;
 }
 
@@ -61,7 +61,7 @@ export interface TranslateLocalizationRequest {
   existingTranslation: string;
   /** optional: same-structure JSON with context hints per key (used by LLM-based models) */
   context: string;
-  /** format for source_language/target_language: "bcp47" (default), "flores200", "native" */
+  /** format for source_language/target_language: "bcp47" (default) or "native" (model-specific codes) */
   languageFormat: string;
 }
 
@@ -74,7 +74,7 @@ export interface TranscribeAudioRequest {
   audioData: Uint8Array;
   language: string;
   audioFormat: string;
-  /** format for language/detected_language: "bcp47" (default), "flores200", "native" */
+  /** format for language/detected_language: "bcp47" (default) or "native" (model-specific codes) */
   languageFormat: string;
 }
 
@@ -95,7 +95,7 @@ export interface SynthesizeSpeechRequest {
   language: string;
   voice: string;
   speed: number;
-  /** format for language: "bcp47" (default), "flores200", "native" */
+  /** format for language: "bcp47" (default) or "native" (model-specific codes) */
   languageFormat: string;
 }
 
@@ -110,7 +110,7 @@ export interface TranslateAudioRequest {
   targetLanguage: string;
   audioFormat: string;
   targetVoice: string;
-  /** format for source_language/target_language: "bcp47" (default), "flores200", "native" */
+  /** format for source_language/target_language: "bcp47" (default) or "native" (model-specific codes) */
   languageFormat: string;
   /** name of the model entry from config (e.g. "m2m100_418M"); empty = default model */
   model: string;
